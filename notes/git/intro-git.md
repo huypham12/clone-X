@@ -1,43 +1,72 @@
 ```bash
-# Git Notes – Cơ bản
+# Git Notes – Cơ bản đến thực chiến
 
 # Repository (repo)
-- Là nơi lưu trữ mã nguồn của dự án, có thể là **local** hoặc **remote (GitHub, GitLab,...)**.
+- Là nơi lưu trữ mã nguồn, có thể local (trên máy) hoặc remote (GitHub,...)
 
-# Khởi tạo Git repository (local)
+# Khởi tạo repository
 git init
 
 # Cấu hình Git
 
-# Cấu hình global (áp dụng cho toàn bộ máy)
+# Cấu hình toàn cục (toàn bộ máy)
 git config --global user.name "Du Thanh Duoc"
 git config --global user.email "duthanhduoc@gmail.com"
 
-# Xem cấu hình global
+# Xem cấu hình
 git config --global --list
-
-# Cấu hình local (chỉ áp dụng cho repo hiện tại — yêu cầu đã git init)
 git config --local --list
+
+# Trạng thái của file
+git status
 
 # Thêm file vào Staging area
 
-# Thêm toàn bộ file
-git add .
+git add .                 # Thêm tất cả file
+git add <file_name>       # Thêm file cụ thể
 
-# Thêm file cụ thể
-git add <file_name>
+# Khôi phục khỏi Staging (quay về Working Directory)
 
-# Khôi phục file từ Staging về Working Directory
-
-# Khôi phục toàn bộ
-git reset .
-
-# Khôi phục file cụ thể
-git reset <file_name>
+git reset .               # Bỏ toàn bộ file khỏi staging
+git reset <file_name>     # Bỏ 1 file khỏi staging
 
 # Commit thay đổi vào local repo
 
-# Commit với message
-git commit -m "Mô tả ngắn gọn về thay đổi"
+git commit -m "Nội dung thay đổi"
+
+# Xem lịch sử commit
+
+git log                   # Danh sách commit
+git log --oneline         # Rút gọn 1 dòng mỗi commit
+git log --graph --oneline # Hiển thị sơ đồ nhánh đơn giản
+
+# So sánh thay đổi
+
+git diff                  # So sánh code đã thay đổi (chưa add)
+git diff --staged         # So sánh giữa staging và commit gần nhất
+
+# Xóa file theo dõi bởi Git
+
+git rm <file_name>        # Xóa file và đưa vào commit
+
+# Làm việc với Remote Repository
+
+git remote add origin <url>  # Liên kết với remote repo
+git push -u origin main      # Đẩy code lên nhánh chính (lần đầu)
+git push                     # Đẩy các thay đổi tiếp theo
+git pull                     # Kéo code mới về từ remote
+
+# Làm việc với Branch
+
+git branch                   # Xem danh sách branch
+git branch <branch_name>     # Tạo branch mới
+git checkout <branch_name>   # Chuyển branch
+git checkout -b <branch>     # Tạo mới + chuyển nhanh
+git merge <branch>           # Gộp branch vào hiện tại
+git branch -d <branch_name>  # Xóa branch
+
+# Bỏ qua file không muốn theo dõi
+# Tạo file .gitignore và thêm tên các file/thư mục cần bỏ qua
+
 
 ```
