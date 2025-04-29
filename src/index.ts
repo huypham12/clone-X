@@ -4,7 +4,7 @@ import databaseService from './services/database.services'
 
 const app = express()
 const port = process.env.PORT
-app.use(express.json())
+app.use(express.json()) //parse json thành object
 databaseService.connect()
 
 app.use('/users', usersRouter)
