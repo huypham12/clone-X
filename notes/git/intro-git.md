@@ -10,8 +10,8 @@ git init
 # Cấu hình Git
 
 # Cấu hình toàn cục (toàn bộ máy)
-git config --global user.name "Du Thanh Duoc"
-git config --global user.email "duthanhduoc@gmail.com"
+git config --global user.name "Huy Pham"
+git config --global user.email "huy9008437@gmail.com"
 
 # Xem cấu hình
 git config --global --list

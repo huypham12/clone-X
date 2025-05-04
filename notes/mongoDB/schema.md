@@ -9,7 +9,7 @@ enum UserVerifyStatus {
   Verified, // đã xác thực email
   Banned // bị khóa
 }
-interface User {
+interface UserType {
   _id: ObjectId
   name: string
   email: string
