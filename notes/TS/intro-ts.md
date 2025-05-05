@@ -81,7 +81,7 @@ enum Sizes {
 console.log(Sizes.S) // Output: 0
 
 // INTERFACE 
-// Interface dùng để mô tả cấu trúc của một object. Ưu điểm của interface là có thể kế thừa và gộp nhiều định nghĩa (declaration merging).
+// Interface dùng để định nghĩa cấu trúc của một object. Ưu điểm của interface là có thể kế thừa và gộp nhiều định nghĩa (declaration merging).
 // Định nghĩa interface ban đầu
 interface User1 {
   name: string

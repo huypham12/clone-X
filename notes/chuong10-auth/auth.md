@@ -35,8 +35,9 @@
 
   Refresh token:
   - Được cc cùng access token, khi access token hết hạn, người dùng có thể dùng refresh token để lấy một access token mới mà k cần đăng nhập lại. Token này được lưu trữ tại https only và có thời gian dài hơn khoảng vài tháng.
-  - Khi server nhận được refresh token từ người dùng, nếu hợp lệ, sẽ xóa cái cũ và tạo cái mới nhưng với expire date như cũ, đồng thời cũng tạo một access token mới. 
+  - Khi server nhận được refresh token từ người dùng, nếu hợp lệ, sẽ xóa cái cũ và tạo cái mới nhưng với expire date như cũ, đồng thời cũng tạo một access token mới (Refresh Token Rotation). 
   - Quá trình xác thực tiếp tục diễn ra như vậy.
+  - Mặc dù là stateful nhưng chu kỳ xuất hiện trong request là từ 5-10 p nên là cx k tốn thời gian lắm, đánh đổi lấy bảo mật thôi
 
   - Việc refresh token được lưu tại db có thể giúp giảm thiểu rủi do về bảo mật khi ta có thể quyết định được sự tồn tại của nó.
 
