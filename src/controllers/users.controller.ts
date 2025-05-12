@@ -1,6 +1,8 @@
 import { Request, Response } from 'express'
 import databaseService from '~/services/database.services'
 import usersService from '~/services/users.services'
+import { ParamsDictionary } from 'express-serve-static-core'
+import RegisterReqBody from '~/models/requests/User.requests'
 
 export const loginController = (req: Request, res: Response) => {
   const { email, password } = req.body
@@ -15,8 +17,7 @@ export const loginController = (req: Request, res: Response) => {
   }
 }
 
-export const registerController = async (req: Request, res: Response) => {
-  console.log(databaseService.users)
+export const registerController = async (req: Request<ParamsDictionary, any, RegisterReqBody>, res: Response) => {
   try {
     // khi gọi một hàm bất động bộ thì cần await để chờ nó thực thi xong, vì nếu không chờ nó chỉ là một promise (lời hứa e trao=)))) chứ chưa có gì cả
     const result = await usersService.register(req.body)

@@ -60,7 +60,7 @@ schema validation
         // - Gồm hai phần key và vaulue
         checkSchema({username: {
           errorMessage: 'Invalid username',
-        isEmail: true,
+          isEmail: true,
         }})
 
 
