@@ -22,7 +22,7 @@ export const loginValidator = (req: Request, res: Response, next: NextFunction) 
 }
 
 // lên trang https://github.com/validatorjs/validator.js để đọc mấy cái hàm
-export const registorValidator = validate(
+export const registerValidator = validate(
   checkSchema({
     name: {
       isString: true,
