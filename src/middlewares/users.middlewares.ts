@@ -4,24 +4,43 @@ import { validate } from '~/utils/validation'
 import usersService from '~/services/users.services'
 import { ErrorWithStatus } from '~/models/errors'
 import { usersMessage } from '~/constants/messages'
+import databaseService from '~/services/database.services'
+import { hashPassword } from '~/utils/crypto'
 
 // middleware này trả về lỗi khi thiếu email, mật khẩu
-export const loginValidator = (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body
-  if (!email || !password) {
-    res.status(400).json({
-      error: 'Missing email or password'
-    })
-    return
+export const loginValidator = validate(
+  checkSchema({
+    email: {
+      isEmail: {
+        errorMessage: usersMessage.EMAIL_MUST_BE_VALID
+      },
+      trim: true,
+      custom: {
+        options: async (value, { req }) => {
+          const user = await databaseService.users.findOne({ email: value, password: hashPassword(req.body.password) }) // kiểm tra xem có users luôn nữa đỡ phải check lại để lấy giá trị users
+          if (user === null) {
+            throw new ErrorWithStatus({
+              message: usersMessage.USER_DOES_NOT_EXIST,
+              status: 401
+            })
+          }
+          // gán cái user này vào trong req để đi tiếp tới controller, khi này k phải check lại user để lấy id nữa
+          req.user = user
+          return true
+        }
+      }
+    },
 
-    // return  res.status(400).json({
-    //   error: 'Missing email or password'
-    // })
-    // ghi như này là sai vì express tới ts mong muốn trả về void hoặc promise<void> (nghĩa là k trả về gì) chứ không phải một response
-  }
-  // chuyển qua middleware hoặc controller tiếp theo
-  next()
-}
+    password: {
+      notEmpty: {
+        errorMessage: usersMessage.PASSWORD_IS_REQUIRED
+      },
+      isString: {
+        errorMessage: usersMessage.PASSWORD_MUST_BE_STRING
+      }
+    }
+  })
+)
 
 // lên trang https://github.com/validatorjs/validator.js để đọc mấy cái hàm
 export const registerValidator = validate(
@@ -43,9 +62,6 @@ export const registerValidator = validate(
     },
 
     email: {
-      notEmpty: {
-        errorMessage: usersMessage.EMAIL_IS_REQUIRED
-      },
       isEmail: {
         errorMessage: usersMessage.EMAIL_MUST_BE_VALID
       },

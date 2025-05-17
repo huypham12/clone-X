@@ -6,7 +6,7 @@ import { wrap } from '~/utils/handlers'
 const usersRouter = Router()
 
 // tách các middleware, controller thành các module riêng cho dễ quản lý
-usersRouter.post('/login', loginValidator, loginController)
+usersRouter.post('/login', loginValidator, wrap(loginController))
 
 /*
   Desc: Register a new user

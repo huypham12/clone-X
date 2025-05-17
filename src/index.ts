@@ -3,6 +3,8 @@ import usersRouter from './routes/users.routes'
 import databaseService from './services/database.services'
 import { Request, Response, NextFunction } from 'express'
 import { defaultErrorHandler } from './middlewares/error.middlewares'
+import { config } from 'dotenv'
+config()
 
 const app = express()
 const port = process.env.PORT

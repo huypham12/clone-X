@@ -1,4 +1,6 @@
 import jwt, { SignOptions } from 'jsonwebtoken'
+import { config } from 'dotenv'
+config()
 
 // mấy cái chỗ kiểu dữ liệu này ts nó có cái gọi là function overloads nên phải viết đúng kiểu dữ liệu cụ thể thì mới đc:))) biết thế đã
 

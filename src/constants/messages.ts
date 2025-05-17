@@ -1,5 +1,8 @@
 // tách cái message trả về cho người dùng ra để dễ bảo trì
 export const usersMessage = {
+  REGISTER_SUCCESS: 'Register success',
+  LOGIN_SUCCESS: 'Login success',
+
   VALIDATION_ERROR: 'Validation error',
 
   // Name
@@ -11,6 +14,7 @@ export const usersMessage = {
   EMAIL_IS_REQUIRED: 'Email is required',
   EMAIL_MUST_BE_VALID: 'Incorrect email format',
   EMAIL_ALREADY_EXISTS: 'Email already exists',
+  USER_DOES_NOT_EXIST: 'Email does not exist or password is incorrect',
 
   // Password
   PASSWORD_IS_REQUIRED: 'Password is required',
