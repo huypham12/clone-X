@@ -7,6 +7,7 @@ import { TokenType } from '~/constants/enums'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import { ObjectId } from 'mongodb'
 import { config } from 'dotenv'
+import { usersMessage } from '~/constants/messages'
 config()
 
 // cái service này dùng cho cái collection users, khi nào code cần dùng đến cái collection này thì gọi service ra
@@ -73,6 +74,13 @@ class UsersService {
     return {
       accessToken,
       refreshToken
+    }
+  }
+
+  async logout(refresh_token: string) {
+    await databaseService.refreshTokens.deleteOne({ token: refresh_token })
+    return {
+      message: usersMessage.LOGOUT_SUCCESS
     }
   }
 }

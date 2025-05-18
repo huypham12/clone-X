@@ -1,5 +1,6 @@
 import jwt, { SignOptions } from 'jsonwebtoken'
 import { config } from 'dotenv'
+import { TokenPayload } from '~/models/requests/User.requests'
 config()
 
 // mấy cái chỗ kiểu dữ liệu này ts nó có cái gọi là function overloads nên phải viết đúng kiểu dữ liệu cụ thể thì mới đc:))) biết thế đã
@@ -20,6 +21,19 @@ export const signToken = ({
         return reject(error)
       }
       return resolve(token as string)
+    })
+  })
+}
+
+
+// hàm này giúp giải mã + xác thực, nếu token gửi lên đúng thì nó trả về cái code đã được giải mã
+export const verifyToken = ({ token, secretKey = process.env.JWT_SECRET as string }: { token: string, secretKey?: string }) => {
+  return new Promise<TokenPayload>((resolve, reject) => {
+    jwt.verify(token, secretKey, (error, decoded) => {
+      if (error) {
+        return reject(error)
+      }
+      resolve(decoded as TokenPayload)
     })
   })
 }

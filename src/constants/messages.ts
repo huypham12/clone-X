@@ -2,8 +2,13 @@
 export const usersMessage = {
   REGISTER_SUCCESS: 'Register success',
   LOGIN_SUCCESS: 'Login success',
+  LOGOUT_SUCCESS: 'Logout success',
 
   VALIDATION_ERROR: 'Validation error',
+  UNAUTHORIZED: 'Unauthorized',
+  ACCESS_TOKEN_IS_REQUIRED: 'Access token is required',
+  REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
+  USED_REFRESH_TOKEN_OR_NOT_EXIST: 'Used refresh token or not exist',
 
   // Name
   NAME_IS_REQUIRED: 'Name is required',

@@ -4,5 +4,11 @@
     "plaintext": false,
     "markdown": false,
     "scminput": false
+  },
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": true,
+  "[markdown]": {
+    "files.encoding": "utf8",
+    "files.autoGuessEncoding": true
   }
 }

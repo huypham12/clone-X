@@ -6,6 +6,8 @@ import { ErrorWithStatus } from '~/models/errors'
 import { usersMessage } from '~/constants/messages'
 import databaseService from '~/services/database.services'
 import { hashPassword } from '~/utils/crypto'
+import { verifyToken } from '~/utils/jwt'
+import httpStatus from '~/constants/httpStatus'
 
 // middleware này trả về lỗi khi thiếu email, mật khẩu
 export const loginValidator = validate(
@@ -139,5 +141,94 @@ export const registerValidator = validate(
         errorMessage: usersMessage.DATE_OF_BIRTH_MUST_BE_ISO8601
       }
     }
-  })
+  }, ['body'])
 )
+
+// Helper function to validate Bearer token format
+const validateBearerToken = (value: string) => {
+  if (!value) {
+    throw new ErrorWithStatus({ 
+      message: usersMessage.ACCESS_TOKEN_IS_REQUIRED, 
+      status: httpStatus.UNAUTHORIZED 
+    })
+  }
+
+  const [bearer, token] = value.split(' ')
+  if (!token || bearer !== 'Bearer') {
+    throw new ErrorWithStatus({ 
+      message: 'Invalid token format. Must be: Bearer <token>', 
+      status: httpStatus.UNAUTHORIZED 
+    })
+  }
+
+  return token
+}
+
+// Helper function to verify access token
+const verifyAccessToken = async (token: string) => {
+  try {
+    return await verifyToken({ token })
+  } catch (error) {
+    throw new ErrorWithStatus({ 
+      message: usersMessage.UNAUTHORIZED, 
+      status: httpStatus.UNAUTHORIZED 
+    })
+  }
+}
+
+// Helper function to verify refresh token
+const verifyRefreshToken = async (token: string) => {
+  try {
+    // Kiểm tra refresh token trong database trước
+    const refreshToken = await databaseService.refreshTokens.findOne({ token })
+    if (!refreshToken) {
+      throw new ErrorWithStatus({
+        message: usersMessage.REFRESH_TOKEN_IS_REQUIRED,
+        status: httpStatus.UNAUTHORIZED
+      })
+    }
+
+    // Sau đó mới verify token
+    const decodedToken = await verifyToken({ token })
+    return decodedToken
+  } catch (error) {
+    if (error instanceof ErrorWithStatus) {
+      throw error
+    }
+    throw new ErrorWithStatus({ 
+      message: usersMessage.UNAUTHORIZED, 
+      status: httpStatus.UNAUTHORIZED 
+    })
+  }
+}
+
+
+// kiểm tra ở vị trí nào thì truyền vào vị trí đó thôi, đỡ phải kiểm tra hết, tăng hiệu xuất
+// jwt là self-contained, mình chỉ cần decode nó trong đấy nó chứa hết thông tin xác thực rồi nếu đúng thì được đi tiếp
+export const accessTokenValidator = validate(checkSchema({
+  Authorization: {
+    custom: {
+      options: async (value, { req }) => {
+        const token = validateBearerToken(value)
+        const decodedToken = await verifyAccessToken(token)
+        req.decoded_authorization = decodedToken
+        return true
+      }
+    }
+  }
+}, ['headers']))
+
+export const refreshTokenValidator = validate(checkSchema({
+  refresh_token: {
+    notEmpty: {
+      errorMessage: usersMessage.REFRESH_TOKEN_IS_REQUIRED
+    },
+    custom: {
+      options: async (value: string, { req }) => {
+        const decodedToken = await verifyRefreshToken(value)
+        req.decoded_refresh_token = decodedToken
+        return true
+      }
+    }
+  }
+}, ['body']))
