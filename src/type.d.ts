@@ -5,5 +5,6 @@ import { TokenPayload } from './models/requests/User.requests'
 declare module 'express' {
   interface Request {
     user?: User
+    decoded_email_verify_token?: TokenPayload
   }
 }

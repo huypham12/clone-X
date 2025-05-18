@@ -147,17 +147,17 @@ export const registerValidator = validate(
 // Helper function to validate Bearer token format
 const validateBearerToken = (value: string) => {
   if (!value) {
-    throw new ErrorWithStatus({ 
-      message: usersMessage.ACCESS_TOKEN_IS_REQUIRED, 
-      status: httpStatus.UNAUTHORIZED 
+    throw new ErrorWithStatus({
+      message: usersMessage.ACCESS_TOKEN_IS_REQUIRED,
+      status: httpStatus.UNAUTHORIZED
     })
   }
 
   const [bearer, token] = value.split(' ')
   if (!token || bearer !== 'Bearer') {
-    throw new ErrorWithStatus({ 
-      message: 'Invalid token format. Must be: Bearer <token>', 
-      status: httpStatus.UNAUTHORIZED 
+    throw new ErrorWithStatus({
+      message: 'Invalid token format. Must be: Bearer <token>',
+      status: httpStatus.UNAUTHORIZED
     })
   }
 
@@ -167,17 +167,17 @@ const validateBearerToken = (value: string) => {
 // Helper function to verify access token
 const verifyAccessToken = async (token: string) => {
   try {
-    return await verifyToken({ token })
+    return await verifyToken({ token, secretKey: process.env.JWT_SECRET_ACCESS_TOKEN as string })
   } catch (error) {
-    throw new ErrorWithStatus({ 
-      message: usersMessage.UNAUTHORIZED, 
-      status: httpStatus.UNAUTHORIZED 
+    throw new ErrorWithStatus({
+      message: usersMessage.UNAUTHORIZED,
+      status: httpStatus.UNAUTHORIZED
     })
   }
 }
 
 // Helper function to verify refresh token
-const verifyRefreshToken = async (token: string) => {
+const verifyRefreshToken = async ({ token, secretKey, }: { token: string, secretKey: string }) => {
   try {
     // Kiểm tra refresh token trong database trước
     const refreshToken = await databaseService.refreshTokens.findOne({ token })
@@ -189,15 +189,31 @@ const verifyRefreshToken = async (token: string) => {
     }
 
     // Sau đó mới verify token
-    const decodedToken = await verifyToken({ token })
+    const decodedToken = await verifyToken({ token, secretKey })
     return decodedToken
   } catch (error) {
     if (error instanceof ErrorWithStatus) {
       throw error
     }
-    throw new ErrorWithStatus({ 
-      message: usersMessage.UNAUTHORIZED, 
-      status: httpStatus.UNAUTHORIZED 
+    throw new ErrorWithStatus({
+      message: usersMessage.UNAUTHORIZED,
+      status: httpStatus.UNAUTHORIZED
+    })
+  }
+}
+
+// Helper function to email verify token
+const emailVerifyToken = async ({ token, secretKey, }: { token: string, secretKey: string }) => {
+  try {
+    const decodedToken = await verifyToken({ token, secretKey })
+    return decodedToken
+  } catch (error) {
+    if (error instanceof ErrorWithStatus) {
+      throw error
+    }
+    throw new ErrorWithStatus({
+      message: usersMessage.UNAUTHORIZED,
+      status: httpStatus.UNAUTHORIZED
     })
   }
 }
@@ -225,8 +241,23 @@ export const refreshTokenValidator = validate(checkSchema({
     },
     custom: {
       options: async (value: string, { req }) => {
-        const decodedToken = await verifyRefreshToken(value)
+        const decodedToken = await verifyRefreshToken({ token: value, secretKey: process.env.JWT_SECRET_REFRESH_TOKEN as string })
         req.decoded_refresh_token = decodedToken
+        return true
+      }
+    }
+  }
+}, ['body']))
+
+export const emailVerifyTokenValidator = validate(checkSchema({
+  email_verify_token: {
+    notEmpty: {
+      errorMessage: usersMessage.EMAIL_VERIFY_TOKEN_IS_REQUIRED
+    },
+    custom: {
+      options: async (value: string, { req }) => {
+        const decodedToken = await emailVerifyToken({ token: value, secretKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string })
+        req.decoded_email_verify_token = decodedToken
         return true
       }
     }

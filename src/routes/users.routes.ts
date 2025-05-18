@@ -1,7 +1,7 @@
 import { Router } from 'express'
 // ~ đại diện cho src (được cấu hình ở tsconfig.json rồi)
-import { accessTokenValidator, loginValidator, refreshTokenValidator, registerValidator } from '~/middlewares/users.middlewares'
-import { loginController, logoutController, registerController } from '~/controllers/users.controller'
+import { accessTokenValidator, emailVerifyTokenValidator, loginValidator, refreshTokenValidator, registerValidator } from '~/middlewares/users.middlewares'
+import { emailVerifyController, loginController, logoutController, registerController } from '~/controllers/users.controller'
 import { wrap } from '~/utils/handlers'
 const usersRouter = Router()
 
@@ -26,5 +26,21 @@ usersRouter.post('/login', loginValidator, wrap(loginController))
   // Bearer là mã thông báo bảo mật dùng trong các giao thức xác thực
 */
 usersRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrap(logoutController))
+
+/*
+  Description: Refresh token
+  Path: /refresh-token
+  Method: POST
+  Body: {refresh_token: string}
+*/
+usersRouter.post('/refresh-token', refreshTokenValidator)
+
+/*
+  Description: Verify email when user click on the link in email
+  Path: /verify-email
+  Method: POST
+  Body: {email_verify_token: string}
+*/
+usersRouter.post('/verify-email', emailVerifyTokenValidator, wrap(emailVerifyController))
 
 export default usersRouter

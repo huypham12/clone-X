@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from 'express'
 import usersService from '~/services/users.services'
 import { ParamsDictionary } from 'express-serve-static-core'
-import RegisterReqBody, { LogoutReqBody } from '~/models/requests/User.requests'
+import RegisterReqBody, { LogoutReqBody, TokenPayload } from '~/models/requests/User.requests'
 import User from '~/models/schemas/User.schema'
 import { usersMessage } from '~/constants/messages'
 import databaseService from '~/services/database.services'
 import httpStatus from '~/constants/httpStatus'
+import { ObjectId } from 'mongodb'
 
 export const loginController = async (req: Request, res: Response) => {
   const user = req.user as User
@@ -27,10 +28,44 @@ export const registerController = async (req: Request<ParamsDictionary, any, Reg
 }
 
 export const logoutController = async (req: Request<ParamsDictionary, any, LogoutReqBody>, res: Response) => {
-  const { refresh_token} = req.body
+  const { refresh_token } = req.body
   await usersService.logout(refresh_token)
   res.json({
     message: usersMessage.LOGOUT_SUCCESS
   })
- }
+}
+
+export const refreshTokenController = async (req: Request, res: Response) => {
+
+}
+
+export const emailVerifyController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_email_verify_token as TokenPayload
+  const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+
+  if (!user) {
+    res.status(httpStatus.NOT_FOUND).json({
+      message: usersMessage.USER_NOT_FOUND
+    })
+    return
+  }
+
+  // nếu có tồn tại user này mà email verify token rỗng thì tức là người dùng này đã xác thực trước đó rồi nên là thông báo thành công
+  if (user?.email_verify_token==='') {
+    res.json({
+      message: usersMessage.EMAIL_ALREADY_VERIFIED_BEFORE
+    })
+    return
+  }
+
+  const result = await usersService.verifyEmail(user_id)
+  // sau khi verify thì trả về token để người dùng có thể đăng nhập
+  res.json({
+    message: usersMessage.EMAIL_VERIFY_SUCCESS,
+    result
+  })
+}
+
+
+
 
