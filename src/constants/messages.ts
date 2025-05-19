@@ -3,6 +3,7 @@ export const usersMessage = {
   REGISTER_SUCCESS: 'Register success',
   LOGIN_SUCCESS: 'Login success',
   LOGOUT_SUCCESS: 'Logout success',
+  RESEND_EMAIL_VERIFY_SUCCESS: 'Resend email verify success',
 
   VALIDATION_ERROR: 'Validation error',
   UNAUTHORIZED: 'Unauthorized',

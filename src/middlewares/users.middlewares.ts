@@ -47,101 +47,104 @@ export const loginValidator = validate(
 // lên trang https://github.com/validatorjs/validator.js để đọc mấy cái hàm
 export const registerValidator = validate(
   // hàm checkSchema được truyền vào cái hàm validate để đọc cái chuỗi lỗi (vì check schema là kiểu viết khác của validation chain thôi), hàm validate này trả về một hàm async chờ xử lý lỗi nếu pass thì tới request handler không thì tới errors handler tổng
-  checkSchema({
-    // các message được tách riêng đối với từng loại lỗi
-    name: {
-      notEmpty: {
-        errorMessage: usersMessage.NAME_IS_REQUIRED
+  checkSchema(
+    {
+      // các message được tách riêng đối với từng loại lỗi
+      name: {
+        notEmpty: {
+          errorMessage: usersMessage.NAME_IS_REQUIRED
+        },
+        isString: {
+          errorMessage: usersMessage.NAME_MUST_BE_STRING
+        },
+        isLength: {
+          options: { min: 1, max: 100 },
+          errorMessage: usersMessage.NAME_LENGTH_MUST_BE_FROM_1_TO_100
+        },
+        trim: true
       },
-      isString: {
-        errorMessage: usersMessage.NAME_MUST_BE_STRING
-      },
-      isLength: {
-        options: { min: 1, max: 100 },
-        errorMessage: usersMessage.NAME_LENGTH_MUST_BE_FROM_1_TO_100
-      },
-      trim: true
-    },
 
-    email: {
-      isEmail: {
-        errorMessage: usersMessage.EMAIL_MUST_BE_VALID
-      },
-      trim: true,
-      custom: {
-        options: async (value) => {
-          const isExitEmail = await usersService.checkEmailExit(value)
-          if (isExitEmail) {
-            throw new ErrorWithStatus({
-              message: usersMessage.EMAIL_ALREADY_EXISTS,
-              status: 409
-            })
+      email: {
+        isEmail: {
+          errorMessage: usersMessage.EMAIL_MUST_BE_VALID
+        },
+        trim: true,
+        custom: {
+          options: async (value) => {
+            const isExitEmail = await usersService.checkEmailExit(value)
+            if (isExitEmail) {
+              throw new ErrorWithStatus({
+                message: usersMessage.EMAIL_ALREADY_EXISTS,
+                status: 409
+              })
+            }
+            return true
           }
-          return true
+        }
+      },
+
+      password: {
+        notEmpty: {
+          errorMessage: usersMessage.PASSWORD_IS_REQUIRED
+        },
+        isString: {
+          errorMessage: usersMessage.PASSWORD_MUST_BE_STRING
+        },
+        isStrongPassword: {
+          options: {
+            minLength: 6,
+            minLowercase: 1,
+            minUppercase: 1,
+            minNumbers: 1,
+            minSymbols: 1
+          },
+          errorMessage: usersMessage.PASSWORD_MUST_BE_STRONG
+        }
+      },
+
+      confirm_password: {
+        notEmpty: {
+          errorMessage: usersMessage.CONFIRM_PASSWORD_IS_REQUIRED
+        },
+        isString: {
+          errorMessage: usersMessage.CONFIRM_PASSWORD_MUST_BE_STRING
+        },
+        isLength: {
+          options: { min: 6, max: 50 },
+          errorMessage: usersMessage.CONFIRM_PASSWORD_LENGTH
+        },
+        isStrongPassword: {
+          options: {
+            minLength: 6,
+            minLowercase: 1,
+            minUppercase: 1,
+            minNumbers: 1,
+            minSymbols: 1
+          },
+          errorMessage: usersMessage.CONFIRM_PASSWORD_MUST_BE_STRONG
+        },
+        custom: {
+          options: (value, { req }) => {
+            if (value !== req.body.password) {
+              throw new Error(usersMessage.CONFIRM_PASSWORD_DOES_NOT_MATCH)
+            }
+            return true
+          }
+        }
+      },
+
+      date_of_birth: {
+        isISO8601: {
+          options: {
+            strict: true,
+            strictSeparator: true
+          },
+          errorMessage: usersMessage.DATE_OF_BIRTH_MUST_BE_ISO8601
         }
       }
     },
-
-    password: {
-      notEmpty: {
-        errorMessage: usersMessage.PASSWORD_IS_REQUIRED
-      },
-      isString: {
-        errorMessage: usersMessage.PASSWORD_MUST_BE_STRING
-      },
-      isStrongPassword: {
-        options: {
-          minLength: 6,
-          minLowercase: 1,
-          minUppercase: 1,
-          minNumbers: 1,
-          minSymbols: 1
-        },
-        errorMessage: usersMessage.PASSWORD_MUST_BE_STRONG
-      }
-    },
-
-    confirm_password: {
-      notEmpty: {
-        errorMessage: usersMessage.CONFIRM_PASSWORD_IS_REQUIRED
-      },
-      isString: {
-        errorMessage: usersMessage.CONFIRM_PASSWORD_MUST_BE_STRING
-      },
-      isLength: {
-        options: { min: 6, max: 50 },
-        errorMessage: usersMessage.CONFIRM_PASSWORD_LENGTH
-      },
-      isStrongPassword: {
-        options: {
-          minLength: 6,
-          minLowercase: 1,
-          minUppercase: 1,
-          minNumbers: 1,
-          minSymbols: 1
-        },
-        errorMessage: usersMessage.CONFIRM_PASSWORD_MUST_BE_STRONG
-      },
-      custom: {
-        options: (value, { req }) => {
-          if (value !== req.body.password) {
-            throw new Error(usersMessage.CONFIRM_PASSWORD_DOES_NOT_MATCH)
-          }
-          return true
-        }
-      }
-    },
-
-    date_of_birth: {
-      isISO8601: {
-        options: {
-          strict: true,
-          strictSeparator: true
-        },
-        errorMessage: usersMessage.DATE_OF_BIRTH_MUST_BE_ISO8601
-      }
-    }
-  }, ['body'])
+    ['body']
+  )
 )
 
 // Helper function to validate Bearer token format
@@ -177,7 +180,7 @@ const verifyAccessToken = async (token: string) => {
 }
 
 // Helper function to verify refresh token
-const verifyRefreshToken = async ({ token, secretKey, }: { token: string, secretKey: string }) => {
+const verifyRefreshToken = async ({ token, secretKey }: { token: string; secretKey: string }) => {
   try {
     // Kiểm tra refresh token trong database trước
     const refreshToken = await databaseService.refreshTokens.findOne({ token })
@@ -203,7 +206,7 @@ const verifyRefreshToken = async ({ token, secretKey, }: { token: string, secret
 }
 
 // Helper function to email verify token
-const emailVerifyToken = async ({ token, secretKey, }: { token: string, secretKey: string }) => {
+const emailVerifyToken = async ({ token, secretKey }: { token: string; secretKey: string }) => {
   try {
     const decodedToken = await verifyToken({ token, secretKey })
     return decodedToken
@@ -218,48 +221,68 @@ const emailVerifyToken = async ({ token, secretKey, }: { token: string, secretKe
   }
 }
 
-
 // kiểm tra ở vị trí nào thì truyền vào vị trí đó thôi, đỡ phải kiểm tra hết, tăng hiệu xuất
 // jwt là self-contained, mình chỉ cần decode nó trong đấy nó chứa hết thông tin xác thực rồi nếu đúng thì được đi tiếp
-export const accessTokenValidator = validate(checkSchema({
-  Authorization: {
-    custom: {
-      options: async (value, { req }) => {
-        const token = validateBearerToken(value)
-        const decodedToken = await verifyAccessToken(token)
-        req.decoded_authorization = decodedToken
-        return true
+export const accessTokenValidator = validate(
+  checkSchema(
+    {
+      Authorization: {
+        custom: {
+          options: async (value, { req }) => {
+            const token = validateBearerToken(value)
+            const decodedToken = await verifyAccessToken(token)
+            req.decoded_authorization = decodedToken
+            return true
+          }
+        }
       }
-    }
-  }
-}, ['headers']))
-
-export const refreshTokenValidator = validate(checkSchema({
-  refresh_token: {
-    notEmpty: {
-      errorMessage: usersMessage.REFRESH_TOKEN_IS_REQUIRED
     },
-    custom: {
-      options: async (value: string, { req }) => {
-        const decodedToken = await verifyRefreshToken({ token: value, secretKey: process.env.JWT_SECRET_REFRESH_TOKEN as string })
-        req.decoded_refresh_token = decodedToken
-        return true
-      }
-    }
-  }
-}, ['body']))
+    ['headers']
+  )
+)
 
-export const emailVerifyTokenValidator = validate(checkSchema({
-  email_verify_token: {
-    notEmpty: {
-      errorMessage: usersMessage.EMAIL_VERIFY_TOKEN_IS_REQUIRED
-    },
-    custom: {
-      options: async (value: string, { req }) => {
-        const decodedToken = await emailVerifyToken({ token: value, secretKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string })
-        req.decoded_email_verify_token = decodedToken
-        return true
+export const refreshTokenValidator = validate(
+  checkSchema(
+    {
+      refresh_token: {
+        notEmpty: {
+          errorMessage: usersMessage.REFRESH_TOKEN_IS_REQUIRED
+        },
+        custom: {
+          options: async (value: string, { req }) => {
+            const decodedToken = await verifyRefreshToken({
+              token: value,
+              secretKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+            })
+            req.decoded_refresh_token = decodedToken
+            return true
+          }
+        }
       }
-    }
-  }
-}, ['body']))
+    },
+    ['body']
+  )
+)
+
+export const emailVerifyTokenValidator = validate(
+  checkSchema(
+    {
+      email_verify_token: {
+        notEmpty: {
+          errorMessage: usersMessage.EMAIL_VERIFY_TOKEN_IS_REQUIRED
+        },
+        custom: {
+          options: async (value: string, { req }) => {
+            const decodedToken = await emailVerifyToken({
+              token: value,
+              secretKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
+            })
+            req.decoded_email_verify_token = decodedToken
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)

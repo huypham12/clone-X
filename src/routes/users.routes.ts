@@ -1,7 +1,19 @@
 import { Router } from 'express'
 // ~ đại diện cho src (được cấu hình ở tsconfig.json rồi)
-import { accessTokenValidator, emailVerifyTokenValidator, loginValidator, refreshTokenValidator, registerValidator } from '~/middlewares/users.middlewares'
-import { emailVerifyController, loginController, logoutController, registerController } from '~/controllers/users.controller'
+import {
+  accessTokenValidator,
+  emailVerifyTokenValidator,
+  loginValidator,
+  refreshTokenValidator,
+  registerValidator
+} from '~/middlewares/users.middlewares'
+import {
+  loginController,
+  logoutController,
+  registerController,
+  resendEmailVerifyController,
+  verifyEmailController
+} from '~/controllers/users.controller'
 import { wrap } from '~/utils/handlers'
 const usersRouter = Router()
 
@@ -41,6 +53,14 @@ usersRouter.post('/refresh-token', refreshTokenValidator)
   Method: POST
   Body: {email_verify_token: string}
 */
-usersRouter.post('/verify-email', emailVerifyTokenValidator, wrap(emailVerifyController))
+usersRouter.post('/verify-email', emailVerifyTokenValidator, wrap(verifyEmailController))
+
+/*
+  Description: Resend verify email when user click on the link in email
+  Headers: {Authorization: Bearer <access_token>}
+  Method: POST
+  Body: {}
+*/
+usersRouter.post('/resend-verify-email', accessTokenValidator, wrap(resendEmailVerifyController))
 
 export default usersRouter

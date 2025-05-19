@@ -1,6 +1,6 @@
 import User from '~/models/schemas/User.schema'
 import databaseService from './database.services'
-import RegisterReqBody from '~/models/requests/User.requests'
+import { RegisterReqBody } from '~/models/requests/User.requests'
 import { hashPassword } from '~/utils/crypto'
 import { signToken } from '~/utils/jwt'
 import { TokenType, UserVerifyStatus } from '~/constants/enums'
@@ -79,14 +79,16 @@ class UsersService {
       new RefreshToken({ user_id: new ObjectId(user_id), token: refreshToken })
     )
 
-    await databaseService.users.updateOne({
-      _id: new ObjectId(user_id)
-    },
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
       {
         $set: {
           email_verify_token: email_verify_token
         }
-      })
+      }
+    )
 
     return {
       accessToken,
@@ -115,26 +117,49 @@ class UsersService {
 
   async verifyEmail(user_id: string) {
     // khi token gửi lên đã khớp với token được lưu trong db thì xác nhận email cho người dùng và thực hiện xóa token
-    const result = await databaseService.users.updateOne({
-      _id: new ObjectId(user_id)
-    },
+    const result = await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
       {
         $set: {
           email_verify_token: '',
           verify: UserVerifyStatus.Verified
         },
-        $currentDate:{
+        $currentDate: {
           updated_at: true
         }
       }
-   )
+    )
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
     return {
       access_token,
       refresh_token
     }
-
   }
+
+  async resendEmailVerify(user_id: string) {
+    const email_verify_token = await this.signEmailVerifyToken(user_id)
+    // tạo lại email verify token cho người dùng để gửi lại
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $set: {
+          email_verify_token
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    )
+    return {
+      email_verify_token
+    }
+  }
+
+  // sau đó sẽ gửi email cho người dùng với token này (cái gửi email thì chưa làm, nào làm tự hiểu)
 }
 
 const usersService = new UsersService()
