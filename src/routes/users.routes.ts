@@ -3,11 +3,13 @@ import { Router } from 'express'
 import {
   accessTokenValidator,
   emailVerifyTokenValidator,
+  forgotPasswordValidator,
   loginValidator,
   refreshTokenValidator,
   registerValidator
 } from '~/middlewares/users.middlewares'
 import {
+  forgotPasswordController,
   loginController,
   logoutController,
   registerController,
@@ -63,4 +65,15 @@ usersRouter.post('/verify-email', emailVerifyTokenValidator, wrap(verifyEmailCon
 */
 usersRouter.post('/resend-verify-email', accessTokenValidator, wrap(resendEmailVerifyController))
 
+/*
+  Description: Forgot password
+  Path: /forgot-password
+  Method: POST
+  Body: {email: string}
+  // Gửi email để đặt lại mật khẩu
+*/
+
+usersRouter.post('/forgot-password', forgotPasswordValidator, wrap(forgotPasswordController))
+
+usersRouter.post('/verify-forgot-password', accessTokenValidator, wrap(forgotPasswordController))
 export default usersRouter

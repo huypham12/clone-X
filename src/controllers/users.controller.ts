@@ -1,7 +1,13 @@
 import e, { Request, Response, NextFunction } from 'express'
 import usersService from '~/services/users.services'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { RegisterReqBody, LogoutReqBody, TokenPayload, VerifyEmailReqBody } from '~/models/requests/User.requests'
+import {
+  RegisterReqBody,
+  LogoutReqBody,
+  TokenPayload,
+  VerifyEmailReqBody,
+  ForgotPasswordReqBody
+} from '~/models/requests/User.requests'
 import User from '~/models/schemas/User.schema'
 import { usersMessage } from '~/constants/messages'
 import databaseService from '~/services/database.services'
@@ -87,5 +93,17 @@ export const resendEmailVerifyController = async (req: Request, res: Response) =
   res.json({
     message: usersMessage.RESEND_EMAIL_VERIFY_SUCCESS,
     email_verify_token
+  })
+}
+
+export const forgotPasswordController = async (
+  req: Request<ParamsDictionary, any, ForgotPasswordReqBody>,
+  res: Response
+) => {
+  const { _id } = req.user as User
+  // tạo forgot password token
+  const forgot_password_token = await usersService.forgotPassword(_id.toString())
+  res.json({
+    message: usersMessage.CHECK_EMAIL_TO_RESET_PASSWORD
   })
 }

@@ -4,6 +4,8 @@ export const usersMessage = {
   LOGIN_SUCCESS: 'Login success',
   LOGOUT_SUCCESS: 'Logout success',
   RESEND_EMAIL_VERIFY_SUCCESS: 'Resend email verify success',
+  EMAIL_DOES_NOT_EXIST: 'Email does not exist',
+  CHECK_EMAIL_TO_RESET_PASSWORD: 'Check your email to reset password',
 
   VALIDATION_ERROR: 'Validation error',
   UNAUTHORIZED: 'Unauthorized',

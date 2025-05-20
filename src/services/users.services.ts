@@ -57,6 +57,22 @@ class UsersService {
     })
   }
 
+  private signForgotPasswordToken(user_id: string) {
+    return signToken({
+      payload: {
+        user_id,
+        token_type: TokenType.ForgotPasswordToken
+      },
+      privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
+      options: {
+        algorithm: 'HS256',
+        // cái này nó là dạng chuỗi đặc biệt để định dạng Date
+        expiresIn: process.env
+          .FORGOT_PASSWORD_TOKEN_EXIPIRES_IN as `${number}${'ms' | 's' | 'm' | 'h' | 'd' | 'w' | 'y'}`
+      }
+    })
+  }
+
   private signAccessAndRefreshToken(user_id: string) {
     return Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)])
   }
@@ -158,8 +174,27 @@ class UsersService {
       email_verify_token
     }
   }
-
   // sau đó sẽ gửi email cho người dùng với token này (cái gửi email thì chưa làm, nào làm tự hiểu)
+
+  async forgotPassword(_id: string) {
+    const forgot_password_token = await this.signForgotPasswordToken(_id)
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(_id)
+      },
+      {
+        $set: {
+          forgot_password_token: forgot_password_token
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    )
+
+    // sau đó sẽ gửi cái liên kết chứa token này tới email người dùng https://x.com/reset-password?token=abc123xyz
+    // tới cái api reset password thì xử lý ở đấy chứ phần này tới đây là xong rồi 
+  }
 }
 
 const usersService = new UsersService()
