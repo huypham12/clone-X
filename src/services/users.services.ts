@@ -191,9 +191,12 @@ class UsersService {
         }
       }
     )
+    return {
+      forgot_password_token
+    }
 
     // sau đó sẽ gửi cái liên kết chứa token này tới email người dùng https://x.com/reset-password?token=abc123xyz
-    // tới cái api reset password thì xử lý ở đấy chứ phần này tới đây là xong rồi 
+    // tới cái api reset password thì xử lý ở đấy chứ phần này tới đây là xong rồi
   }
 }
 

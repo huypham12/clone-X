@@ -8,6 +8,7 @@ import databaseService from '~/services/database.services'
 import { hashPassword } from '~/utils/crypto'
 import { verifyToken } from '~/utils/jwt'
 import httpStatus from '~/constants/httpStatus'
+import { ObjectId } from 'mongodb'
 
 // middleware này trả về lỗi khi thiếu email, mật khẩu
 export const loginValidator = validate(
@@ -221,6 +222,22 @@ const emailVerifyToken = async ({ token, secretKey }: { token: string; secretKey
   }
 }
 
+// Helper function to verify forgot password token
+const verrifyForgotPasswordToken = async ({ token, secretKey }: { token: string; secretKey: string }) => {
+  try {
+    const decodedToken = await verifyToken({ token, secretKey })
+    return decodedToken
+  } catch (error) {
+    if (error instanceof ErrorWithStatus) {
+      throw error
+    }
+    throw new ErrorWithStatus({
+      message: usersMessage.UNAUTHORIZED,
+      status: httpStatus.UNAUTHORIZED
+    })
+  }
+}
+
 // kiểm tra ở vị trí nào thì truyền vào vị trí đó thôi, đỡ phải kiểm tra hết, tăng hiệu xuất
 // jwt là self-contained, mình chỉ cần decode nó trong đấy nó chứa hết thông tin xác thực rồi nếu đúng thì được đi tiếp
 export const accessTokenValidator = validate(
@@ -305,6 +322,45 @@ export const forgotPasswordValidator = validate(
               })
             }
             req.user = user
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const verifyForgotPasswordTokenValidator = validate(
+  checkSchema(
+    {
+      forgot_password_token: {
+        notEmpty: {
+          errorMessage: usersMessage.FORGOT_PASSWORD_TOKEN_IS_REQUIRED
+        },
+        custom: {
+          options: async (value: string, { req }) => {
+            const decodedToken = await verrifyForgotPasswordToken({
+              token: value,
+              secretKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
+            })
+
+            const user = await databaseService.users.findOne({ _id: new ObjectId(decodedToken.user_id) })
+            if (!user) {
+              throw new ErrorWithStatus({
+                message: usersMessage.USER_NOT_FOUND,
+                status: httpStatus.NOT_FOUND
+              })
+            }
+            // kiểm trả xem token này có đúng với forgot password token trong database không
+            if (value !== user.forgot_password_token) {
+              throw new ErrorWithStatus({
+                message: usersMessage.INVALID_FORGOT_PASSWORD_TOKEN,
+                status: httpStatus.UNAUTHORIZED
+              })
+            }
+
+            req.decoded_forgot_password_token = decodedToken
             return true
           }
         }

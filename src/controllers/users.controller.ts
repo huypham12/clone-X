@@ -6,7 +6,8 @@ import {
   LogoutReqBody,
   TokenPayload,
   VerifyEmailReqBody,
-  ForgotPasswordReqBody
+  ForgotPasswordReqBody,
+  VerifyForgotPasswordReqBody
 } from '~/models/requests/User.requests'
 import User from '~/models/schemas/User.schema'
 import { usersMessage } from '~/constants/messages'
@@ -103,7 +104,17 @@ export const forgotPasswordController = async (
   const { _id } = req.user as User
   // tạo forgot password token
   const forgot_password_token = await usersService.forgotPassword(_id.toString())
+  console.log(forgot_password_token) // giả định người dùng nhận được token này khi bấm vào link trong email(cái này chưa làm)
   res.json({
     message: usersMessage.CHECK_EMAIL_TO_RESET_PASSWORD
+  })
+}
+
+export const verifyForgotPasswordTokenController = async (
+  req: Request<ParamsDictionary, any, VerifyForgotPasswordReqBody>,
+  res: Response
+) => {
+  res.json({
+    message: usersMessage.VERIFY_FORGOT_PASSWORD_TOKEN_SUCCESS
   })
 }

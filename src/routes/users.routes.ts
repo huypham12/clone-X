@@ -6,7 +6,8 @@ import {
   forgotPasswordValidator,
   loginValidator,
   refreshTokenValidator,
-  registerValidator
+  registerValidator,
+  verifyForgotPasswordTokenValidator
 } from '~/middlewares/users.middlewares'
 import {
   forgotPasswordController,
@@ -14,7 +15,8 @@ import {
   logoutController,
   registerController,
   resendEmailVerifyController,
-  verifyEmailController
+  verifyEmailController,
+  verifyForgotPasswordTokenController
 } from '~/controllers/users.controller'
 import { wrap } from '~/utils/handlers'
 const usersRouter = Router()
@@ -72,8 +74,20 @@ usersRouter.post('/resend-verify-email', accessTokenValidator, wrap(resendEmailV
   Body: {email: string}
   // Gửi email để đặt lại mật khẩu
 */
-
 usersRouter.post('/forgot-password', forgotPasswordValidator, wrap(forgotPasswordController))
 
-usersRouter.post('/verify-forgot-password', accessTokenValidator, wrap(forgotPasswordController))
+/*
+  Description: Verify link in email to reset password
+  Path: /verify-forgot-password
+  Method: POST
+  Body: {forgot_password_token: string}
+  // khi người dùng bấm vào link trong email thì sẽ gửi về token để xác thực
+  // sau đó sẽ gửi về một form để người dùng nhập mật khẩu mới và xác nhận mật khẩu mới (cái phần này thuộc reset password)
+
+  */
+usersRouter.post(
+  '/verify-forgot-password',
+  verifyForgotPasswordTokenValidator,
+  wrap(verifyForgotPasswordTokenController)
+)
 export default usersRouter
