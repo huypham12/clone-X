@@ -25,9 +25,8 @@ export const signToken = ({
   })
 }
 
-
 // hàm này giúp giải mã + xác thực, nếu token gửi lên đúng thì nó trả về cái code đã được giải mã
-export const verifyToken = ({ token, secretKey }: { token: string, secretKey: string }) => {
+export const verifyToken = ({ token, secretKey }: { token: string; secretKey: string }) => {
   return new Promise<TokenPayload>((resolve, reject) => {
     jwt.verify(token, secretKey, (error, decoded) => {
       if (error) {
