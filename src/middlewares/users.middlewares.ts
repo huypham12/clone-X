@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { checkSchema } from 'express-validator'
+import { checkSchema, ParamSchema } from 'express-validator'
 import { validate } from '~/utils/validation'
 import usersService from '~/services/users.services'
 import { ErrorWithStatus } from '~/models/errors'
@@ -43,109 +43,6 @@ export const loginValidator = validate(
       }
     }
   })
-)
-
-// lên trang https://github.com/validatorjs/validator.js để đọc mấy cái hàm
-export const registerValidator = validate(
-  // hàm checkSchema được truyền vào cái hàm validate để đọc cái chuỗi lỗi (vì check schema là kiểu viết khác của validation chain thôi), hàm validate này trả về một hàm async chờ xử lý lỗi nếu pass thì tới request handler không thì tới errors handler tổng
-  checkSchema(
-    {
-      // các message được tách riêng đối với từng loại lỗi
-      name: {
-        notEmpty: {
-          errorMessage: usersMessage.NAME_IS_REQUIRED
-        },
-        isString: {
-          errorMessage: usersMessage.NAME_MUST_BE_STRING
-        },
-        isLength: {
-          options: { min: 1, max: 100 },
-          errorMessage: usersMessage.NAME_LENGTH_MUST_BE_FROM_1_TO_100
-        },
-        trim: true
-      },
-
-      email: {
-        isEmail: {
-          errorMessage: usersMessage.EMAIL_MUST_BE_VALID
-        },
-        trim: true,
-        custom: {
-          options: async (value) => {
-            const isExitEmail = await usersService.checkEmailExit(value)
-            if (isExitEmail) {
-              throw new ErrorWithStatus({
-                message: usersMessage.EMAIL_ALREADY_EXISTS,
-                status: 409
-              })
-            }
-            return true
-          }
-        }
-      },
-
-      password: {
-        notEmpty: {
-          errorMessage: usersMessage.PASSWORD_IS_REQUIRED
-        },
-        isString: {
-          errorMessage: usersMessage.PASSWORD_MUST_BE_STRING
-        },
-        isStrongPassword: {
-          options: {
-            minLength: 6,
-            minLowercase: 1,
-            minUppercase: 1,
-            minNumbers: 1,
-            minSymbols: 1
-          },
-          errorMessage: usersMessage.PASSWORD_MUST_BE_STRONG
-        }
-      },
-
-      confirm_password: {
-        notEmpty: {
-          errorMessage: usersMessage.CONFIRM_PASSWORD_IS_REQUIRED
-        },
-        isString: {
-          errorMessage: usersMessage.CONFIRM_PASSWORD_MUST_BE_STRING
-        },
-        isLength: {
-          options: { min: 6, max: 50 },
-          errorMessage: usersMessage.CONFIRM_PASSWORD_LENGTH
-        },
-        isStrongPassword: {
-          options: {
-            minLength: 6,
-            minLowercase: 1,
-            minUppercase: 1,
-            minNumbers: 1,
-            minSymbols: 1
-          },
-          errorMessage: usersMessage.CONFIRM_PASSWORD_MUST_BE_STRONG
-        },
-        custom: {
-          options: (value, { req }) => {
-            if (value !== req.body.password) {
-              throw new Error(usersMessage.CONFIRM_PASSWORD_DOES_NOT_MATCH)
-            }
-            return true
-          }
-        }
-      },
-
-      date_of_birth: {
-        isISO8601: {
-          options: {
-            strict: true,
-            strictSeparator: true
-          },
-          errorMessage: usersMessage.DATE_OF_BIRTH_MUST_BE_ISO8601
-        }
-      }
-    },
-    ['body']
-  )
 )
 
 // Helper function to validate Bearer token format
@@ -223,7 +120,7 @@ const emailVerifyToken = async ({ token, secretKey }: { token: string; secretKey
 }
 
 // Helper function to verify forgot password token
-const verrifyForgotPasswordToken = async ({ token, secretKey }: { token: string; secretKey: string }) => {
+const verifyForgotPasswordToken = async ({ token, secretKey }: { token: string; secretKey: string }) => {
   try {
     const decodedToken = await verifyToken({ token, secretKey })
     return decodedToken
@@ -237,6 +134,144 @@ const verrifyForgotPasswordToken = async ({ token, secretKey }: { token: string;
     })
   }
 }
+
+const passwordSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: usersMessage.PASSWORD_IS_REQUIRED
+  },
+  isString: {
+    errorMessage: usersMessage.PASSWORD_MUST_BE_STRING
+  },
+  isStrongPassword: {
+    options: {
+      minLength: 6,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 1
+    },
+    errorMessage: usersMessage.PASSWORD_MUST_BE_STRONG
+  }
+}
+
+const confirmPasswordSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: usersMessage.CONFIRM_PASSWORD_IS_REQUIRED
+  },
+  isString: {
+    errorMessage: usersMessage.CONFIRM_PASSWORD_MUST_BE_STRING
+  },
+  isLength: {
+    options: { min: 6, max: 50 },
+    errorMessage: usersMessage.CONFIRM_PASSWORD_LENGTH
+  },
+  isStrongPassword: {
+    options: {
+      minLength: 6,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 1
+    },
+    errorMessage: usersMessage.CONFIRM_PASSWORD_MUST_BE_STRONG
+  },
+  custom: {
+    options: (value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error(usersMessage.CONFIRM_PASSWORD_DOES_NOT_MATCH)
+      }
+      return true
+    }
+  }
+}
+
+const forgotPasswordSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: usersMessage.FORGOT_PASSWORD_TOKEN_IS_REQUIRED
+  },
+  custom: {
+    options: async (value: string, { req }) => {
+      const decodedToken = await verifyForgotPasswordToken({
+        token: value,
+        secretKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
+      })
+
+      const user = await databaseService.users.findOne({ _id: new ObjectId(decodedToken.user_id) })
+      if (!user) {
+        throw new ErrorWithStatus({
+          message: usersMessage.USER_NOT_FOUND,
+          status: httpStatus.NOT_FOUND
+        })
+      }
+      // kiểm trả xem token này có đúng với forgot password token trong database không
+      if (value !== user.forgot_password_token) {
+        throw new ErrorWithStatus({
+          message: usersMessage.INVALID_FORGOT_PASSWORD_TOKEN,
+          status: httpStatus.UNAUTHORIZED
+        })
+      }
+
+      req.decoded_forgot_password_token = decodedToken
+      return true
+    }
+  }
+}
+// lên trang https://github.com/validatorjs/validator.js để đọc mấy cái hàm
+export const registerValidator = validate(
+  // hàm checkSchema được truyền vào cái hàm validate để đọc cái chuỗi lỗi (vì check schema là kiểu viết khác của validation chain thôi), hàm validate này trả về một hàm async chờ xử lý lỗi nếu pass thì tới request handler không thì tới errors handler tổng
+  checkSchema(
+    {
+      // các message được tách riêng đối với từng loại lỗi
+      name: {
+        notEmpty: {
+          errorMessage: usersMessage.NAME_IS_REQUIRED
+        },
+        isString: {
+          errorMessage: usersMessage.NAME_MUST_BE_STRING
+        },
+        isLength: {
+          options: { min: 1, max: 100 },
+          errorMessage: usersMessage.NAME_LENGTH_MUST_BE_FROM_1_TO_100
+        },
+        trim: true
+      },
+
+      email: {
+        isEmail: {
+          errorMessage: usersMessage.EMAIL_MUST_BE_VALID
+        },
+        trim: true,
+        custom: {
+          options: async (value) => {
+            const isExitEmail = await usersService.checkEmailExit(value)
+            if (isExitEmail) {
+              throw new ErrorWithStatus({
+                message: usersMessage.EMAIL_ALREADY_EXISTS,
+                status: 409
+              })
+            }
+            return true
+          }
+        }
+      },
+
+      password: passwordSchema,
+
+      confirm_password: confirmPasswordSchema,
+
+      date_of_birth: {
+        isISO8601: {
+          options: {
+            strict: true,
+            strictSeparator: true
+          },
+          errorMessage: usersMessage.DATE_OF_BIRTH_MUST_BE_ISO8601
+        }
+      }
+    },
+    ['body']
+  )
+)
 
 // kiểm tra ở vị trí nào thì truyền vào vị trí đó thôi, đỡ phải kiểm tra hết, tăng hiệu xuất
 // jwt là self-contained, mình chỉ cần decode nó trong đấy nó chứa hết thông tin xác thực rồi nếu đúng thì được đi tiếp
@@ -334,37 +369,18 @@ export const forgotPasswordValidator = validate(
 export const verifyForgotPasswordTokenValidator = validate(
   checkSchema(
     {
-      forgot_password_token: {
-        notEmpty: {
-          errorMessage: usersMessage.FORGOT_PASSWORD_TOKEN_IS_REQUIRED
-        },
-        custom: {
-          options: async (value: string, { req }) => {
-            const decodedToken = await verrifyForgotPasswordToken({
-              token: value,
-              secretKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
-            })
+      forgot_password_token: forgotPasswordSchema
+    },
+    ['body']
+  )
+)
 
-            const user = await databaseService.users.findOne({ _id: new ObjectId(decodedToken.user_id) })
-            if (!user) {
-              throw new ErrorWithStatus({
-                message: usersMessage.USER_NOT_FOUND,
-                status: httpStatus.NOT_FOUND
-              })
-            }
-            // kiểm trả xem token này có đúng với forgot password token trong database không
-            if (value !== user.forgot_password_token) {
-              throw new ErrorWithStatus({
-                message: usersMessage.INVALID_FORGOT_PASSWORD_TOKEN,
-                status: httpStatus.UNAUTHORIZED
-              })
-            }
-
-            req.decoded_forgot_password_token = decodedToken
-            return true
-          }
-        }
-      }
+export const resetPasswordValidator = validate(
+  checkSchema(
+    {
+      password: passwordSchema,
+      confirm_password: confirmPasswordSchema,
+      forgot_password_token: forgotPasswordSchema
     },
     ['body']
   )

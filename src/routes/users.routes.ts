@@ -7,6 +7,7 @@ import {
   loginValidator,
   refreshTokenValidator,
   registerValidator,
+  resetPasswordValidator,
   verifyForgotPasswordTokenValidator
 } from '~/middlewares/users.middlewares'
 import {
@@ -15,6 +16,7 @@ import {
   logoutController,
   registerController,
   resendEmailVerifyController,
+  resetPasswordController,
   verifyEmailController,
   verifyForgotPasswordTokenController
 } from '~/controllers/users.controller'
@@ -25,7 +27,7 @@ const usersRouter = Router()
   Desc: Register a new user
   Path: /register
   Method: Post
-  Body: {name: string, email: string, password: string, comfirm_password: string, day_of_birth: ISO8601}
+  Body: {name: string, email: string, password: string, comfirm_password: string, date_of_birth: ISO8601}
 
 */
 usersRouter.post('/register', registerValidator, wrap(registerController))
@@ -90,4 +92,13 @@ usersRouter.post(
   verifyForgotPasswordTokenValidator,
   wrap(verifyForgotPasswordTokenController)
 )
+
+/*
+  Description: Reset password
+  Path: /reset-password
+  Method: POST
+  Body: {password: string, confirm_password: string, forgot_password_token: string}
+*/
+
+usersRouter.post('/reset-password', resetPasswordValidator, wrap(resetPasswordController))
 export default usersRouter

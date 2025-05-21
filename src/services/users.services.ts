@@ -198,6 +198,25 @@ class UsersService {
     // sau đó sẽ gửi cái liên kết chứa token này tới email người dùng https://x.com/reset-password?token=abc123xyz
     // tới cái api reset password thì xử lý ở đấy chứ phần này tới đây là xong rồi
   }
+
+  async resetPassword(_id: string, password: string) {
+    // sau khi xác thực token thì sẽ cập nhật lại mật khẩu cho người dùng
+    const hashedPassword = hashPassword(password)
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(_id)
+      },
+      {
+        $set: {
+          password: hashedPassword,
+          forgot_password_token: ''
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    )
+  }
 }
 
 const usersService = new UsersService()
