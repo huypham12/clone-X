@@ -217,6 +217,28 @@ class UsersService {
       }
     )
   }
+
+  async getUserInfo(user_id: string) {
+    const user = await databaseService.users.findOne(
+      { _id: new ObjectId(user_id) },
+      {
+        // k trả về thông tin nhạy cảm của người dùng
+        projection: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_password_token: 0,
+          refresh_token: 0,
+          verify: 0,
+          created_at: 0,
+          updated_at: 0
+        }
+      }
+    )
+    if (!user) {
+      throw new Error(usersMessage.USER_NOT_FOUND)
+    }
+    return user
+  }
 }
 
 const usersService = new UsersService()

@@ -6,6 +6,7 @@ export const usersMessage = {
   LOGOUT_SUCCESS: 'Logout success',
   RESET_PASSWORD_SUCCESS: 'Reset password success',
   RESEND_EMAIL_VERIFY_SUCCESS: 'Resend email verify success',
+  GET_USER_INFO_SUCCESS: 'Get user info success',
 
   // Forgot password flow
   CHECK_EMAIL_TO_RESET_PASSWORD: 'Check your email to reset password',

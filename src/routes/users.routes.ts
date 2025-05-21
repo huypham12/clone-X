@@ -12,6 +12,7 @@ import {
 } from '~/middlewares/users.middlewares'
 import {
   forgotPasswordController,
+  getMeController,
   loginController,
   logoutController,
   registerController,
@@ -101,4 +102,14 @@ usersRouter.post(
 */
 
 usersRouter.post('/reset-password', resetPasswordValidator, wrap(resetPasswordController))
+
+/*
+  Description: Get user info
+  Path: /me
+  Method: GET
+  Header: {Authorization: Bearer <access_token>}
+  lấy thông tin người dùng
+*/
+usersRouter.get('/me', accessTokenValidator, wrap(getMeController))
+
 export default usersRouter
