@@ -9,6 +9,11 @@ import { hashPassword } from '~/utils/crypto'
 import { verifyToken } from '~/utils/jwt'
 import httpStatus from '~/constants/httpStatus'
 import { ObjectId } from 'mongodb'
+import { UserVerifyStatus } from '~/constants/enums'
+import User from '~/models/schemas/User.schema'
+import { error } from 'console'
+import { TokenPayload } from '~/models/requests/User.requests'
+import { TokenExpiredError } from 'jsonwebtoken'
 
 // middleware này trả về lỗi khi thiếu email, mật khẩu
 export const loginValidator = validate(
@@ -68,8 +73,19 @@ const validateBearerToken = (value: string) => {
 // Helper function to verify access token
 const verifyAccessToken = async (token: string) => {
   try {
-    return await verifyToken({ token, secretKey: process.env.JWT_SECRET_ACCESS_TOKEN as string })
-  } catch (error) {
+    console.log(token)
+    return await verifyToken({
+      token,
+      secretKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
+    })
+  } catch (error: any) {
+    if (error instanceof TokenExpiredError) {
+      throw new ErrorWithStatus({
+        message: usersMessage.TOKEN_EXPIRED, // Bạn cần thêm message này trong `usersMessage`
+        status: httpStatus.UNAUTHORIZED
+      })
+    }
+
     throw new ErrorWithStatus({
       message: usersMessage.UNAUTHORIZED,
       status: httpStatus.UNAUTHORIZED
@@ -284,6 +300,7 @@ export const accessTokenValidator = validate(
             const token = validateBearerToken(value)
             const decodedToken = await verifyAccessToken(token)
             req.decoded_authorization = decodedToken
+            console.log(decodedToken)
             return true
           }
         }
@@ -381,6 +398,128 @@ export const resetPasswordValidator = validate(
       password: passwordSchema,
       confirm_password: confirmPasswordSchema,
       forgot_password_token: forgotPasswordSchema
+    },
+    ['body']
+  )
+)
+
+// kiểm tra xem người dùng đã xác thực hay chưa
+export const verifiedUserValidator = (req: Request, res: Response, next: NextFunction) => {
+  const { verify } = req.decoded_authorization as TokenPayload
+  if (verify !== UserVerifyStatus.Verified) {
+    next(
+      new ErrorWithStatus({
+        message: usersMessage.USER_NOT_VERIFIED,
+        status: httpStatus.FORBIDDEN
+      })
+    )
+    return
+  }
+  next()
+}
+
+export const updateMeValidator = validate(
+  checkSchema(
+    {
+      name: {
+        optional: true,
+        trim: true,
+        isString: {
+          errorMessage: usersMessage.NAME_MUST_BE_STRING,
+          bail: true
+        },
+        isLength: {
+          options: { min: 1, max: 100 },
+          errorMessage: usersMessage.NAME_LENGTH_MUST_BE_FROM_1_TO_100
+        }
+      },
+
+      date_of_birth: {
+        optional: true,
+        isISO8601: {
+          options: {
+            strict: true,
+            strictSeparator: true
+          },
+          errorMessage: usersMessage.DATE_OF_BIRTH_MUST_BE_ISO8601
+        }
+      },
+
+      bio: {
+        optional: true,
+        trim: true,
+        isString: {
+          errorMessage: usersMessage.BIO_MUST_BE_STRING,
+          bail: true
+        },
+        isLength: {
+          options: { min: 1, max: 1000 }, // hoặc chỉnh max về 500
+          errorMessage: usersMessage.BIO_LENGTH_MUST_BE_FROM_1_TO_1000
+        }
+      },
+
+      website: {
+        optional: true,
+        trim: true,
+        isURL: {
+          errorMessage: usersMessage.WEBSITE_MUST_BE_URL
+        }
+      },
+
+      username: {
+        optional: true,
+        trim: true,
+        isString: {
+          errorMessage: usersMessage.USERNAME_MUST_BE_STRING,
+          bail: true
+        },
+        isLength: {
+          options: { min: 1, max: 100 },
+          errorMessage: usersMessage.USERNAME_LENGTH_MUST_BE_FROM_1_TO_100
+        },
+        custom: {
+          options: async (value, { req }) => {
+            const existing = await databaseService.users.findOne({ username: value })
+            // chỉ lỗi nếu có user khác đang dùng username này
+            if (existing && existing._id !== (req.user as User)._id) {
+              throw new ErrorWithStatus({
+                message: usersMessage.USERNAME_ALREADY_EXISTS,
+                status: 409
+              })
+            }
+            return true
+          }
+        }
+      },
+
+      avatar: {
+        optional: true,
+        trim: true,
+        isURL: {
+          errorMessage: usersMessage.AVATAR_MUST_BE_URL
+        }
+      },
+
+      cover_photo: {
+        optional: true,
+        trim: true,
+        isURL: {
+          errorMessage: usersMessage.COVER_PHOTO_MUST_BE_URL
+        }
+      },
+
+      location: {
+        optional: true,
+        trim: true,
+        isString: {
+          errorMessage: usersMessage.LOCATION_MUST_BE_STRING,
+          bail: true
+        },
+        isLength: {
+          options: { min: 1, max: 100 },
+          errorMessage: usersMessage.LOCATION_LENGTH_MUST_BE_FROM_1_TO_100
+        }
+      }
     },
     ['body']
   )

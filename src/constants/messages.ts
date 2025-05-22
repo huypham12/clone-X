@@ -1,5 +1,17 @@
 // tách cái message trả về cho người dùng ra để dễ bảo trì
 export const usersMessage = {
+  // User errors
+  BIO_MUST_BE_STRING: 'Bio must be a string',
+  BIO_LENGTH_MUST_BE_FROM_1_TO_1000: 'Bio length must be between 1 and 1000 characters',
+  USERNAME_MUST_BE_STRING: 'Username must be a string',
+  WEBSITE_MUST_BE_URL: 'Website must be a valid URL',
+  USERNAME_LENGTH_MUST_BE_FROM_1_TO_100: 'Username length must be between 1 and 100 characters',
+  USERNAME_ALREADY_EXISTS: 'Username already exists',
+  AVATAR_MUST_BE_URL: 'Avatar must be a valid URL',
+  COVER_PHOTO_MUST_BE_URL: 'Cover photo must be a valid URL',
+  LOCATION_MUST_BE_STRING: 'Location must be a string',
+  LOCATION_LENGTH_MUST_BE_FROM_1_TO_100: 'Location length must be between 1 and 100 characters',
+
   // User actions
   REGISTER_SUCCESS: 'Register success',
   LOGIN_SUCCESS: 'Login success',
@@ -7,6 +19,7 @@ export const usersMessage = {
   RESET_PASSWORD_SUCCESS: 'Reset password success',
   RESEND_EMAIL_VERIFY_SUCCESS: 'Resend email verify success',
   GET_USER_INFO_SUCCESS: 'Get user info success',
+  UPDATE_USER_INFO_SUCCESS: 'Update user info success',
 
   // Forgot password flow
   CHECK_EMAIL_TO_RESET_PASSWORD: 'Check your email to reset password',
@@ -23,10 +36,11 @@ export const usersMessage = {
   ACCESS_TOKEN_IS_REQUIRED: 'Access token is required',
   REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
   USED_REFRESH_TOKEN_OR_NOT_EXIST: 'Used refresh token or not exist',
+  TOKEN_EXPIRED: 'Token expired',
 
   // Authorization
   UNAUTHORIZED: 'Unauthorized',
-
+  USER_NOT_VERIFIED: 'User not verified',
   // User existence
   EMAIL_DOES_NOT_EXIST: 'Email does not exist',
   USER_NOT_FOUND: 'User not found',

@@ -8,7 +8,8 @@ import {
   VerifyEmailReqBody,
   ForgotPasswordReqBody,
   VerifyForgotPasswordReqBody,
-  ResetPasswordReqBody
+  ResetPasswordReqBody,
+  UpdateMeReqBody
 } from '~/models/requests/User.requests'
 import User from '~/models/schemas/User.schema'
 import { usersMessage } from '~/constants/messages'
@@ -20,7 +21,8 @@ import { UserVerifyStatus } from '~/constants/enums'
 export const loginController = async (req: Request<ParamsDictionary, any, LogoutReqBody>, res: Response) => {
   const user = req.user as User
   const user_id = user._id.toString()
-  const result = await usersService.login(user_id)
+  const verify = user.verify
+  const result = await usersService.login({ user_id, verify })
   res.json({
     message: usersMessage.LOGIN_SUCCESS,
     result
@@ -102,9 +104,10 @@ export const forgotPasswordController = async (
   req: Request<ParamsDictionary, any, ForgotPasswordReqBody>,
   res: Response
 ) => {
-  const { _id } = req.user as User
+  const _id = req.user as User
+  const { verify } = req.user as User
   // tạo forgot password token
-  const forgot_password_token = await usersService.forgotPassword(_id.toString())
+  const forgot_password_token = await usersService.forgotPassword({ user_id: _id.toString(), verify })
   console.log(forgot_password_token) // giả định người dùng nhận được token này khi bấm vào link trong email(cái này chưa làm)
   res.json({
     message: usersMessage.CHECK_EMAIL_TO_RESET_PASSWORD
@@ -138,6 +141,15 @@ export const getMeController = async (req: Request, res: Response) => {
   const result = await usersService.getUserInfo(user_id)
   res.json({
     message: usersMessage.GET_USER_INFO_SUCCESS,
+    result
+  })
+}
+
+export const updateMeController = async (req: Request<ParamsDictionary, any, UpdateMeReqBody>, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const result = await usersService.updateUserInfo(user_id, req.body)
+  res.json({
+    message: usersMessage.UPDATE_USER_INFO_SUCCESS,
     result
   })
 }

@@ -2,7 +2,7 @@
 // cái ts này chỉ kiểm tra lúc viết mã nên là chủ yếu là bắt lỗi giúp mình là chính
 
 import { JwtPayload } from 'jsonwebtoken'
-import { TokenType } from '~/constants/enums'
+import { TokenType, UserVerifyStatus } from '~/constants/enums'
 
 export interface RegisterReqBody {
   name: string
@@ -27,7 +27,8 @@ export interface LogoutReqBody {
 
 export interface TokenPayload extends JwtPayload {
   user_id: string
-  token_type: TokenType.RefreshToken
+  token_type: TokenType
+  verify: UserVerifyStatus
 }
 
 export interface ForgotPasswordReqBody {
@@ -41,4 +42,15 @@ export interface VerifyForgotPasswordReqBody {
 export interface ResetPasswordReqBody {
   password: string
   confirm_password: string
+}
+
+export interface UpdateMeReqBody {
+  name?: string
+  bio?: string
+  date_of_birth?: string
+  website?: string
+  username?: string
+  avatar?: string
+  covver_photo?: string
+  location?: string
 }
