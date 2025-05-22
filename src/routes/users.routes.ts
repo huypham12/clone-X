@@ -25,6 +25,7 @@ import {
   verifyForgotPasswordTokenController
 } from '~/controllers/users.controller'
 import { wrap } from '~/utils/handlers'
+import { filterMiddlewares } from '~/middlewares/common.middlewares'
 const usersRouter = Router()
 
 /*
@@ -103,7 +104,6 @@ usersRouter.post(
   Method: POST
   Body: {password: string, confirm_password: string, forgot_password_token: string}
 */
-
 usersRouter.post('/reset-password', resetPasswordValidator, wrap(resetPasswordController))
 
 /*
@@ -123,5 +123,12 @@ usersRouter.get('/me', accessTokenValidator, wrap(getMeController))
   Body: {userInfo: object}
   lấy thông tin người dùng
 */
-usersRouter.patch('/me', accessTokenValidator, verifiedUserValidator, updateMeValidator, wrap(updateMeController))
+usersRouter.patch(
+  '/me',
+  accessTokenValidator,
+  verifiedUserValidator,
+  updateMeValidator,
+  filterMiddlewares(['name', 'bio', 'date_of_birth', 'website', 'username', 'avatar', 'cover_photo', 'location']),
+  wrap(updateMeController)
+)
 export default usersRouter

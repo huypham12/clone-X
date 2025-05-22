@@ -17,6 +17,7 @@ import databaseService from '~/services/database.services'
 import httpStatus from '~/constants/httpStatus'
 import { ObjectId } from 'mongodb'
 import { UserVerifyStatus } from '~/constants/enums'
+import { pick } from 'lodash'
 
 export const loginController = async (req: Request<ParamsDictionary, any, LogoutReqBody>, res: Response) => {
   const user = req.user as User
@@ -147,7 +148,8 @@ export const getMeController = async (req: Request, res: Response) => {
 
 export const updateMeController = async (req: Request<ParamsDictionary, any, UpdateMeReqBody>, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload
-  const result = await usersService.updateUserInfo(user_id, req.body)
+  const body = req.body
+  const result = await usersService.updateUserInfo(user_id, body)
   res.json({
     message: usersMessage.UPDATE_USER_INFO_SUCCESS,
     result
