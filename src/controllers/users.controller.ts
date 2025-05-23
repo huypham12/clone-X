@@ -141,6 +141,16 @@ export const getMeController = async (req: Request, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload
   const result = await usersService.getUserInfo(user_id)
   res.json({
+    message: usersMessage.GET_USER_PROFILE_SUCCESS,
+    result
+  })
+}
+
+export const getProfileController = async (req: Request, res: Response) => {
+  const { username } = req.params
+  console.log('username', username)
+  const result = await usersService.getProfile(username)
+  res.json({
     message: usersMessage.GET_USER_INFO_SUCCESS,
     result
   })

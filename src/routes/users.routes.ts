@@ -15,6 +15,7 @@ import {
 import {
   forgotPasswordController,
   getMeController,
+  getProfileController,
   loginController,
   logoutController,
   registerController,
@@ -131,4 +132,15 @@ usersRouter.patch(
   filterMiddlewares(['name', 'bio', 'date_of_birth', 'website', 'username', 'avatar', 'cover_photo', 'location']),
   wrap(updateMeController)
 )
+
+/*
+  Description: Get user profile
+  Path: /:username
+  Method: get
+  Header: 
+  Body: {userInfo: object}
+  lấy thông tin người dùng
+*/
+usersRouter.get('/:username', wrap(getProfileController))
+
 export default usersRouter

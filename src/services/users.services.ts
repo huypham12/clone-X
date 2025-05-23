@@ -8,6 +8,9 @@ import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import { ObjectId } from 'mongodb'
 import { config } from 'dotenv'
 import { usersMessage } from '~/constants/messages'
+import { ErrorWithStatus } from '~/models/errors'
+import { stat } from 'fs'
+import httpStatus from '~/constants/httpStatus'
 config()
 
 // cái service này dùng cho cái collection users, khi nào code cần dùng đến cái collection này thì gọi service ra
@@ -89,30 +92,26 @@ class UsersService {
 
   async register(payload: RegisterReqBody) {
     // sau khi đăng ký thì thêm vào db và tạo các token gửi về cho người dùng
-    const result = await databaseService.users.insertOne(
-      new User({ ...payload, date_of_birth: new Date(payload.date_of_birth), password: hashPassword(payload.password) })
-    )
-    // nên trả về kết quả của việc insert để sau này có thể lấy insertedId dùng cho việc tạo token gì đó (tạm thời chưa biết)
-    const user_id = result.insertedId.toString()
-    const email_verify_token = await this.signEmailVerifyToken({ user_id, verify: UserVerifyStatus.Unverified })
-    const [accessToken, refreshToken] = await this.signAccessAndRefreshToken({
-      user_id,
+    const user_id = new ObjectId()
+    const email_verify_token = await this.signEmailVerifyToken({
+      user_id: user_id.toString(),
       verify: UserVerifyStatus.Unverified
     })
-    await databaseService.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: refreshToken })
+    const [accessToken, refreshToken] = await this.signAccessAndRefreshToken({
+      user_id: user_id.toString(),
+      verify: UserVerifyStatus.Unverified
+    })
+    const result = await databaseService.users.insertOne(
+      new User({
+        ...payload,
+        _id: user_id,
+        date_of_birth: new Date(payload.date_of_birth),
+        password: hashPassword(payload.password),
+        username: `user${user_id.toString()}`,
+        email_verify_token: email_verify_token
+      })
     )
-
-    await databaseService.users.updateOne(
-      {
-        _id: new ObjectId(user_id)
-      },
-      {
-        $set: {
-          email_verify_token: email_verify_token
-        }
-      }
-    )
+    // nên trả về kết quả của việc insert để sau này có thể lấy insertedId dùng cho việc tạo token gì đó (tạm thời chưa biết)
 
     return {
       accessToken,
@@ -290,6 +289,30 @@ class UsersService {
         }
       }
     )
+    return user
+  }
+
+  async getProfile(username: string) {
+    const user = await databaseService.users.findOne(
+      { username: username },
+      {
+        projection: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_password_token: 0,
+          refresh_token: 0,
+          verify: 0,
+          created_at: 0,
+          updated_at: 0
+        }
+      }
+    )
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: usersMessage.USER_NOT_FOUND,
+        status: httpStatus.NOT_FOUND
+      })
+    }
     return user
   }
 }

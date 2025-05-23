@@ -11,6 +11,7 @@ export const usersMessage = {
   COVER_PHOTO_MUST_BE_URL: 'Cover photo must be a valid URL',
   LOCATION_MUST_BE_STRING: 'Location must be a string',
   LOCATION_LENGTH_MUST_BE_FROM_1_TO_100: 'Location length must be between 1 and 100 characters',
+  GET_USER_PROFILE_SUCCESS: 'Get user profile success',
 
   // User actions
   REGISTER_SUCCESS: 'Register success',

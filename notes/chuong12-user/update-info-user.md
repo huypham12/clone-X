@@ -6,3 +6,4 @@
 2. Validation access-token
 3. Check xem người dùng đã xác thực chưa
 4. Validate req.body
+5. Trả về kết quả 
