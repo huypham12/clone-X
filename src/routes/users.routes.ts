@@ -9,12 +9,12 @@ import {
   refreshTokenValidator,
   registerValidator,
   resetPasswordValidator,
+  unfollowSomeoneValidator,
   updateMeValidator,
   verifiedUserValidator,
   verifyForgotPasswordTokenValidator
 } from '~/middlewares/users.middlewares'
 import {
-  folowUserController,
   forgotPasswordController,
   getMeController,
   getProfileController,
@@ -25,7 +25,9 @@ import {
   resetPasswordController,
   updateMeController,
   verifyEmailController,
-  verifyForgotPasswordTokenController
+  verifyForgotPasswordTokenController,
+  followUserController,
+  unfollowUserController
 } from '~/controllers/users.controller'
 import { wrap } from '~/utils/handlers'
 import { filterMiddlewares } from '~/middlewares/common.middlewares'
@@ -159,7 +161,22 @@ usersRouter.post(
   accessTokenValidator,
   verifiedUserValidator,
   followSomeoneValidator,
-  wrap(folowUserController)
+  wrap(followUserController)
+)
+
+/*
+  Description: Unfollow someone
+  Path: /follow/user_id
+  Method: delete
+  Header: {Authorization: Bearer <access_token>}
+  // người dùng gửi id của người dùng mà mình muốn theo dõi
+*/
+usersRouter.delete(
+  '/follow/:followed_user_id',
+  accessTokenValidator,
+  verifiedUserValidator,
+  unfollowSomeoneValidator,
+  wrap(unfollowUserController)
 )
 
 export default usersRouter

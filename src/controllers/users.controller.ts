@@ -148,7 +148,6 @@ export const getMeController = async (req: Request, res: Response) => {
 
 export const getProfileController = async (req: Request, res: Response) => {
   const { username } = req.params
-  console.log('username', username)
   const result = await usersService.getProfile(username)
   res.json({
     message: usersMessage.GET_USER_INFO_SUCCESS,
@@ -166,7 +165,7 @@ export const updateMeController = async (req: Request<ParamsDictionary, any, Upd
   })
 }
 
-export const folowUserController = async (req: Request, res: Response) => {
+export const followUserController = async (req: Request, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload
   const { followed_user_id } = req.body
 
@@ -183,5 +182,26 @@ export const folowUserController = async (req: Request, res: Response) => {
   await usersService.follow(user_id, followed_user_id)
   res.json({
     message: usersMessage.FOLLOW_USER_SUCCESS
+  })
+}
+
+export const unfollowUserController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { followed_user_id } = req.params
+
+  const follower = await databaseService.followers.findOne({
+    user_id: new ObjectId(user_id),
+    followed_user_id: new ObjectId(followed_user_id as string)
+  })
+  if (!follower) {
+    res.json({
+      message: usersMessage.UNFOLLOWED
+    })
+    return
+  }
+
+  await usersService.unfollow(user_id, followed_user_id)
+  res.json({
+    message: usersMessage.UNFOLLOW_USER_SUCCESS
   })
 }

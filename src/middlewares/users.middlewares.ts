@@ -73,7 +73,6 @@ const validateBearerToken = (value: string) => {
 // Helper function to verify access token
 const verifyAccessToken = async (token: string) => {
   try {
-    console.log(token)
     return await verifyToken({
       token,
       secretKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
@@ -300,7 +299,6 @@ export const accessTokenValidator = validate(
             const token = validateBearerToken(value)
             const decodedToken = await verifyAccessToken(token)
             req.decoded_authorization = decodedToken
-            console.log(decodedToken)
             return true
           }
         }
@@ -550,5 +548,33 @@ export const followSomeoneValidator = validate(
       }
     },
     ['body']
+  )
+)
+
+export const unfollowSomeoneValidator = validate(
+  checkSchema(
+    {
+      followed_user_id: {
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!ObjectId.isValid(value)) {
+              throw new ErrorWithStatus({
+                message: usersMessage.INVALID_USER_ID,
+                status: httpStatus.BAD_REQUEST
+              })
+            }
+
+            const followedUser = await databaseService.users.findOne({ _id: new ObjectId(value) })
+            if (!followedUser) {
+              throw new ErrorWithStatus({
+                message: usersMessage.USER_NOT_FOUND,
+                status: httpStatus.NOT_FOUND
+              })
+            }
+          }
+        }
+      }
+    },
+    ['params']
   )
 )

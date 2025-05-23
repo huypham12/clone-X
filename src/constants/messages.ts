@@ -15,6 +15,9 @@ export const usersMessage = {
   FOLLOW_USER_SUCCESS: 'Follow user success',
   INVALID_FOLLOWED_USER_ID: 'Invalid followed user id',
   FOLLOWED: 'Followed',
+  INVALID_USER_ID: 'Invalid user id',
+  UNFOLLOW_USER_SUCCESS: 'Unfollow user success',
+  UNFOLLOWED: 'Unfollowed',
 
   // User actions
   REGISTER_SUCCESS: 'Register success',
