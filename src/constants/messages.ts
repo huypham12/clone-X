@@ -18,6 +18,7 @@ export const usersMessage = {
   INVALID_USER_ID: 'Invalid user id',
   UNFOLLOW_USER_SUCCESS: 'Unfollow user success',
   UNFOLLOWED: 'Unfollowed',
+  USERNAME_MUST_BE_ALPHANUMERIC: 'Username must be alphanumeric and can contain underscores and dots only',
 
   // User actions
   REGISTER_SUCCESS: 'Register success',

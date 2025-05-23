@@ -14,6 +14,7 @@ import User from '~/models/schemas/User.schema'
 import { error } from 'console'
 import { TokenPayload } from '~/models/requests/User.requests'
 import { TokenExpiredError } from 'jsonwebtoken'
+import { REGEX_USERNAME } from '~/constants/regex'
 
 // middleware này trả về lỗi khi thiếu email, mật khẩu
 export const loginValidator = validate(
@@ -477,9 +478,15 @@ export const updateMeValidator = validate(
         },
         custom: {
           options: async (value, { req }) => {
+            if (REGEX_USERNAME && !REGEX_USERNAME.test(value)) {
+              throw new ErrorWithStatus({
+                message: usersMessage.USERNAME_MUST_BE_ALPHANUMERIC,
+                status: 400
+              })
+            }
             const existing = await databaseService.users.findOne({ username: value })
             // chỉ lỗi nếu có user khác đang dùng username này
-            if (existing && existing._id !== (req.user as User)._id) {
+            if (existing) {
               throw new ErrorWithStatus({
                 message: usersMessage.USERNAME_ALREADY_EXISTS,
                 status: 409
