@@ -12,6 +12,9 @@ export const usersMessage = {
   LOCATION_MUST_BE_STRING: 'Location must be a string',
   LOCATION_LENGTH_MUST_BE_FROM_1_TO_100: 'Location length must be between 1 and 100 characters',
   GET_USER_PROFILE_SUCCESS: 'Get user profile success',
+  FOLLOW_USER_SUCCESS: 'Follow user success',
+  INVALID_FOLLOWED_USER_ID: 'Invalid followed user id',
+  FOLLOWED: 'Followed',
 
   // User actions
   REGISTER_SUCCESS: 'Register success',

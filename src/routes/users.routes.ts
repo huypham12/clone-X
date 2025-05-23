@@ -3,6 +3,7 @@ import { Router } from 'express'
 import {
   accessTokenValidator,
   emailVerifyTokenValidator,
+  followSomeoneValidator,
   forgotPasswordValidator,
   loginValidator,
   refreshTokenValidator,
@@ -13,6 +14,7 @@ import {
   verifyForgotPasswordTokenValidator
 } from '~/middlewares/users.middlewares'
 import {
+  folowUserController,
   forgotPasswordController,
   getMeController,
   getProfileController,
@@ -27,6 +29,7 @@ import {
 } from '~/controllers/users.controller'
 import { wrap } from '~/utils/handlers'
 import { filterMiddlewares } from '~/middlewares/common.middlewares'
+import { flow } from 'lodash'
 const usersRouter = Router()
 
 /*
@@ -142,5 +145,21 @@ usersRouter.patch(
   lấy thông tin người dùng
 */
 usersRouter.get('/:username', wrap(getProfileController))
+
+/*
+  Description: Follow someone
+  Path: /follow
+  Method: post
+  Body: {folow_user_id: string}
+  Header: {Authorization: Bearer <access_token>}
+  // người dùng gửi id của người dùng mà mình muốn theo dõi
+*/
+usersRouter.post(
+  '/follow',
+  accessTokenValidator,
+  verifiedUserValidator,
+  followSomeoneValidator,
+  wrap(folowUserController)
+)
 
 export default usersRouter

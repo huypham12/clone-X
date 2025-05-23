@@ -11,6 +11,7 @@ import { usersMessage } from '~/constants/messages'
 import { ErrorWithStatus } from '~/models/errors'
 import { stat } from 'fs'
 import httpStatus from '~/constants/httpStatus'
+import Followers from '~/models/schemas/Followers.schema'
 config()
 
 // cái service này dùng cho cái collection users, khi nào code cần dùng đến cái collection này thì gọi service ra
@@ -314,6 +315,15 @@ class UsersService {
       })
     }
     return user
+  }
+
+  async follow(user_id: string, followed_user_id: string) {
+    await databaseService.followers.insertOne(
+      new Followers({
+        user_id: new ObjectId(user_id),
+        followed_user_id: new ObjectId(followed_user_id)
+      })
+    )
   }
 }
 

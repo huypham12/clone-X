@@ -12,3 +12,5 @@
 6.1. Người dùng gửi lên forgot_pw_token, pw, confirm_pw
 6.2. Server validate
 6.3. Tiến hành cập nhật pw và xóa forgot_pw_token trong db
+
+# Vấn đề là phải biết trong cái request cần gửi lên những cái gì, sau đó làm sao để xử lý những cái gửi lên đấy, rồi thao tác với mấy cái gửi lên đấy với db ntn để làm gì
