@@ -19,7 +19,7 @@ export const usersMessage = {
   UNFOLLOW_USER_SUCCESS: 'Unfollow user success',
   UNFOLLOWED: 'Unfollowed',
   USERNAME_MUST_BE_ALPHANUMERIC: 'Username must be alphanumeric and can contain underscores and dots only',
-
+  CHANGE_PASSWORD_SUCCESS: 'Change password success',
   // User actions
   REGISTER_SUCCESS: 'Register success',
   LOGIN_SUCCESS: 'Login success',
@@ -28,6 +28,10 @@ export const usersMessage = {
   RESEND_EMAIL_VERIFY_SUCCESS: 'Resend email verify success',
   GET_USER_INFO_SUCCESS: 'Get user info success',
   UPDATE_USER_INFO_SUCCESS: 'Update user info success',
+
+  OLD_PASSWORD_IS_INCORRECT: 'Old password is incorrect',
+  OLD_PASSWORD_MUST_BE_STRING: 'Old password must be a string',
+  OLD_PASSWORD_IS_REQUIRED: 'Old password is required',
 
   // Forgot password flow
   CHECK_EMAIL_TO_RESET_PASSWORD: 'Check your email to reset password',

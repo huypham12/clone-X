@@ -205,3 +205,13 @@ export const unfollowUserController = async (req: Request, res: Response) => {
     message: usersMessage.UNFOLLOW_USER_SUCCESS
   })
 }
+
+export const changePasswordController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { password } = req.body
+  const result = await usersService.changePassword(user_id, password)
+  res.json({
+    message: usersMessage.CHANGE_PASSWORD_SUCCESS,
+    result
+  })
+}

@@ -2,6 +2,7 @@ import { Router } from 'express'
 // ~ đại diện cho src (được cấu hình ở tsconfig.json rồi)
 import {
   accessTokenValidator,
+  changePasswordValidator,
   emailVerifyTokenValidator,
   followSomeoneValidator,
   forgotPasswordValidator,
@@ -27,7 +28,8 @@ import {
   verifyEmailController,
   verifyForgotPasswordTokenController,
   followUserController,
-  unfollowUserController
+  unfollowUserController,
+  changePasswordController
 } from '~/controllers/users.controller'
 import { wrap } from '~/utils/handlers'
 import { filterMiddlewares } from '~/middlewares/common.middlewares'
@@ -177,6 +179,20 @@ usersRouter.delete(
   verifiedUserValidator,
   unfollowSomeoneValidator,
   wrap(unfollowUserController)
+)
+
+/*
+  Description: Change password
+  Method: Put
+  Headers: {Authorization: Bearer <access_token>}
+  Body: {old_password: string, new_password: string}
+*/
+usersRouter.put(
+  '/change-password',
+  accessTokenValidator,
+  verifiedUserValidator,
+  changePasswordValidator,
+  wrap(changePasswordController)
 )
 
 export default usersRouter

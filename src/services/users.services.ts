@@ -331,6 +331,23 @@ class UsersService {
       followed_user_id: new ObjectId(followed_user_id)
     })
   }
+
+  async changePassword(user_id: string, password: string) {
+    const hashedPassword = hashPassword(password)
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $set: {
+          password: hashedPassword
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    )
+  }
 }
 
 const usersService = new UsersService()
