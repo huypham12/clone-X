@@ -2,6 +2,7 @@ import { Router } from 'express'
 // ~ đại diện cho src (được cấu hình ở tsconfig.json rồi)
 import {
   accessTokenValidator,
+  changePasswordValidator,
   emailVerifyTokenValidator,
   followSomeoneValidator,
   forgotPasswordValidator,
@@ -27,11 +28,12 @@ import {
   verifyEmailController,
   verifyForgotPasswordTokenController,
   followUserController,
-  unfollowUserController
+  unfollowUserController,
+  changePasswordController,
+  oauthController
 } from '~/controllers/users.controller'
 import { wrap } from '~/utils/handlers'
 import { filterMiddlewares } from '~/middlewares/common.middlewares'
-import { flow } from 'lodash'
 const usersRouter = Router()
 
 /*
@@ -44,7 +46,21 @@ const usersRouter = Router()
 usersRouter.post('/register', registerValidator, wrap(registerController))
 
 // tách các middleware, controller thành các module riêng cho dễ quản lý
+
+/*
+  Desc: Login a user
+  Path: /login
+  Method: Post
+  Body: {email: string, password: string}
+*/
 usersRouter.post('/login', loginValidator, wrap(loginController))
+
+/*
+  Desc: login a user with Google
+  Path: /auth/google
+  Method: Get
+*/
+usersRouter.get('/auth/google', wrap(oauthController))
 
 /*
   Desc: Logout a user
@@ -177,6 +193,20 @@ usersRouter.delete(
   verifiedUserValidator,
   unfollowSomeoneValidator,
   wrap(unfollowUserController)
+)
+
+/*
+  Description: Change password
+  Method: Put
+  Headers: {Authorization: Bearer <access_token>}
+  Body: {old_password: string, new_password: string}
+*/
+usersRouter.put(
+  '/change-password',
+  accessTokenValidator,
+  verifiedUserValidator,
+  changePasswordValidator,
+  wrap(changePasswordController)
 )
 
 export default usersRouter

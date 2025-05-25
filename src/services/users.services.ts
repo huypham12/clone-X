@@ -11,6 +11,8 @@ import { usersMessage } from '~/constants/messages'
 import { ErrorWithStatus } from '~/models/errors'
 import httpStatus from '~/constants/httpStatus'
 import Followers from '~/models/schemas/Followers.schema'
+import axios from 'axios'
+import { verify } from 'crypto'
 config()
 
 // cái service này dùng cho cái collection users, khi nào code cần dùng đến cái collection này thì gọi service ra
@@ -131,6 +133,90 @@ class UsersService {
     }
   }
 
+  private async getOauthGoogleToken(code: string) {
+    // dữ liệu gửi lên để lấy token từ Google, đây là chuẩn của gg cứ theo thôi
+    const body = {
+      code, // mã này được gửi khi người dùng đồng ý đăng nhập bằng GG bên frontend
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      grant_type: 'authorization_code'
+    }
+
+    // gửi yêu cầu đến Google để lấy token
+    const { data } = await axios.post('https://oauth2.googleapis.com/token', body, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    return data
+  }
+
+  private async getGoogleUserInfo(access_token: string, id_token: string) {
+    const { data } = await axios.get('https://www.googleapis.com/oauth2/v1/userinfo', {
+      params: {
+        access_token,
+        alt: 'json'
+      },
+      headers: {
+        Authorization: `Bearer ${id_token}`
+      }
+    })
+    return data
+  }
+
+  async oauth(code: string) {
+    const { id_token, access_token } = await this.getOauthGoogleToken(code)
+    const userInfo = await this.getGoogleUserInfo(access_token, id_token)
+    if (!userInfo.verified_email) {
+      throw new ErrorWithStatus({
+        message: usersMessage.GMAIL_NOT_VERIFIED,
+        status: httpStatus.BAD_REQUEST
+      })
+    }
+
+    // kiểm tra xem người dùng đã đăng ký chưa, nếu chưa thì tạo mới
+    const user = (await databaseService.users.findOne({ email: userInfo.email })) as User
+
+    if (user) {
+      const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
+        user_id: user._id.toString(),
+        verify: user.verify
+      })
+      await databaseService.refreshTokens.insertOne(new RefreshToken({ user_id: user._id, token: refresh_token }))
+      return {
+        access_token,
+        refresh_token,
+        newUser: 0,
+        verify: user.verify
+      }
+    } else {
+      const user_id = new ObjectId()
+      const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
+        user_id: user_id.toString(),
+        verify: UserVerifyStatus.Unverified
+      })
+      const result = await databaseService.users.insertOne(
+        new User({
+          _id: user_id,
+          email: userInfo.email,
+          username: `user${user_id.toString()}`,
+          password: hashPassword(userInfo.email),
+          avatar: userInfo.picture,
+          name: userInfo.name,
+          date_of_birth: new Date()
+        })
+      )
+      await databaseService.refreshTokens.insertOne(new RefreshToken({ user_id: user_id, token: refresh_token }))
+      return {
+        access_token,
+        refresh_token,
+        newUser: 1,
+        verify: UserVerifyStatus.Unverified
+      }
+    }
+  }
+
   async logout(refresh_token: string) {
     await databaseService.refreshTokens.deleteOne({ token: refresh_token })
     return {
@@ -158,6 +244,11 @@ class UsersService {
       user_id,
       verify: UserVerifyStatus.Verified
     })
+
+    // thêm refresh token vào db
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    )
     return {
       access_token,
       refresh_token
@@ -330,6 +421,23 @@ class UsersService {
       user_id: new ObjectId(user_id),
       followed_user_id: new ObjectId(followed_user_id)
     })
+  }
+
+  async changePassword(user_id: string, password: string) {
+    const hashedPassword = hashPassword(password)
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $set: {
+          password: hashedPassword
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    )
   }
 }
 

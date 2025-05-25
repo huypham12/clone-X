@@ -30,6 +30,14 @@ export const loginController = async (req: Request<ParamsDictionary, any, Logout
   })
 }
 
+export const oauthController = async (req: Request, res: Response) => {
+  const { code } = req.query as { code: string }
+  const result = await usersService.oauth(code)
+  const urlRedirect = `${process.env.CLIENT_REDIRECT_URI}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}${result.verify}`
+  res.redirect(urlRedirect)
+  return
+}
+
 export const registerController = async (req: Request<ParamsDictionary, any, RegisterReqBody>, res: Response) => {
   // khi gọi một hàm bất động bộ thì cần await để chờ nó thực thi xong, vì nếu không chờ nó chỉ là một promise (lời hứa e trao=)))) chứ chưa có gì cả
   const result = await usersService.register(req.body)
@@ -203,5 +211,15 @@ export const unfollowUserController = async (req: Request, res: Response) => {
   await usersService.unfollow(user_id, followed_user_id)
   res.json({
     message: usersMessage.UNFOLLOW_USER_SUCCESS
+  })
+}
+
+export const changePasswordController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { password } = req.body
+  const result = await usersService.changePassword(user_id, password)
+  res.json({
+    message: usersMessage.CHANGE_PASSWORD_SUCCESS,
+    result
   })
 }

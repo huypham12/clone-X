@@ -2,5 +2,5 @@ node_modules/
 dist/
 .env
 test.js
-progress/
-30days/
+notes/
+bieu-do/
