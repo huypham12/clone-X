@@ -34,7 +34,7 @@ export const oauthController = async (req: Request, res: Response) => {
   const { code } = req.query as { code: string }
   const result = await usersService.oauth(code)
   const urlRedirect = `${process.env.CLIENT_REDIRECT_URI}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}${result.verify}`
-  res.redirect(urlRedirect)
+  res.redirect(urlRedirect) // trả về redirect đến client với access_token và refresh_token để fe lưu vào localStorage
   return
 }
 

@@ -152,6 +152,7 @@ class UsersService {
     return data
   }
 
+  // hàm này dùng để lấy thông tin người dùng từ Google sau khi đã có access_token và id_token
   private async getGoogleUserInfo(access_token: string, id_token: string) {
     const { data } = await axios.get('https://www.googleapis.com/oauth2/v1/userinfo', {
       params: {
@@ -201,7 +202,7 @@ class UsersService {
           _id: user_id,
           email: userInfo.email,
           username: `user${user_id.toString()}`,
-          password: hashPassword(userInfo.email),
+          password: hashPassword(crypto.randomUUID()),
           avatar: userInfo.picture,
           name: userInfo.name,
           date_of_birth: new Date()
