@@ -4,6 +4,9 @@ import sharp from 'sharp'
 import { UPLOAD_DIR } from '~/constants/dir'
 import { handleUploadSingleImage } from '~/utils/file'
 import fs from 'fs'
+import { config } from 'dotenv'
+import { isProduction } from '~/constants/config'
+config()
 
 class MediasService {
   async handleUploadSingleImage(req: IncomingMessage) {
@@ -13,7 +16,11 @@ class MediasService {
     const newPath = path.resolve(UPLOAD_DIR, `${oldPath.replace(/\.\w+$/, '.jpeg')}`)
     const info = await sharp(file.filepath).jpeg().toFile(newPath)
     fs.unlinkSync(file.filepath) // xóa file tạm thời sau khi chuyển đổi
-    return info // contains size, format, etc.
+    // nếu là môi trường production thì trả về đường dẫn đầy đủ
+    // nếu là môi trường development thì trả về đường dẫn localhost
+    return isProduction
+      ? `${process.env.HOST}/medias/${path.basename(newPath)}`
+      : `http://localhost:${process.env.PORT}/medias/${path.basename(newPath)}`
   }
 }
 
