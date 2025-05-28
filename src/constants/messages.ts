@@ -28,6 +28,7 @@ export const usersMessage = {
   RESEND_EMAIL_VERIFY_SUCCESS: 'Resend email verify success',
   GET_USER_INFO_SUCCESS: 'Get user info success',
   UPDATE_USER_INFO_SUCCESS: 'Update user info success',
+  UPLOAD_VIDEO_SUCCESS: 'Upload video success',
 
   OLD_PASSWORD_IS_INCORRECT: 'Old password is incorrect',
   OLD_PASSWORD_MUST_BE_STRING: 'Old password must be a string',
