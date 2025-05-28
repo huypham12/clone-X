@@ -44,6 +44,7 @@ export const usersMessage = {
   EMAIL_VERIFY_SUCCESS: 'Email verify success',
   EMAIL_ALREADY_VERIFIED_BEFORE: 'Email already verified before',
   GMAIL_NOT_VERIFIED: 'Gmail not verified',
+  UPLOAD_IMAGE_SUCCESS: 'Upload image success',
 
   // Token errors
   ACCESS_TOKEN_IS_REQUIRED: 'Access token is required',

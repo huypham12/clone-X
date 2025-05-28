@@ -5,12 +5,16 @@ import { Request, Response, NextFunction } from 'express'
 import { defaultErrorHandler } from './middlewares/error.middlewares'
 import { config } from 'dotenv'
 import mediaRouter from './routes/medias.routes'
+import { UPLOAD_DIR } from './constants/dir'
+import staticRouter from './routes/static.routes'
 config()
 
 const app = express()
 const port = process.env.PORT
 app.use(express.json()) //parse json thành object
 databaseService.connect()
+app.use('/static', staticRouter) // phục vụ các file tĩnh trong thư mục UPLOAD_DIR
+// app.use('/static', express.static(UPLOAD_DIR)) // phục vụ các file tĩnh trong thư mục UPLOAD_DIR
 
 app.use('/users', usersRouter)
 app.use('/medias', mediaRouter)

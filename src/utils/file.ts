@@ -12,12 +12,13 @@ export const initFolder = (folderPath: string): void => {
   }
 }
 initFolder(UPLOAD_TEMP_DIR)
-export const handleUploadSingleImage = async (req: IncomingMessage) => {
+export const handleUploadImage = async (req: IncomingMessage) => {
   const form = formidable({
     uploadDir: UPLOAD_TEMP_DIR,
     keepExtensions: true,
-    maxFiles: 1,
+    maxFiles: 4,
     maxFieldsSize: 300 * 1024, // 300KB
+    maxTotalFileSize: 4 * 300 * 1024, // 1.2MB
     filter: function ({ name, originalFilename, mimetype }) {
       const valid = name === 'image' && Boolean(mimetype?.includes('image/'))
       if (!valid) {
@@ -30,7 +31,7 @@ export const handleUploadSingleImage = async (req: IncomingMessage) => {
     }
   })
 
-  return new Promise<File>((resolve, reject) => {
+  return new Promise<File[]>((resolve, reject) => {
     form.parse(req, (err, fields, files) => {
       if (err) {
         return reject(err)
@@ -38,7 +39,7 @@ export const handleUploadSingleImage = async (req: IncomingMessage) => {
       if (!files.image) {
         return reject(new ErrorWithStatus({ message: 'No image file uploaded or invalid file name', status: 400 }))
       }
-      resolve((files.image as File[])[0])
+      resolve(files.image as File[])
     })
   })
 }
