@@ -53,7 +53,14 @@ export const handleUploadVideo = async (req: IncomingMessage) => {
     maxFiles: 4,
     maxFieldsSize: 500 * 1024 * 1024, // 500MB
     filter: function ({ name, originalFilename, mimetype }) {
-      return true
+      const valid = name === 'video' && Boolean(mimetype?.includes('mp4') || mimetype?.includes('quicktime'))
+      if (!valid) {
+        form.emit(
+          'error' as any,
+          new ErrorWithStatus({ message: 'Invalid file type: Only videos are allowed', status: 400 }) as any
+        )
+      }
+      return valid
     }
   })
 
@@ -75,7 +82,6 @@ export const handleUploadVideo = async (req: IncomingMessage) => {
         )
         video.newFilename = video.filepath + '.' + ext // Update newFilename to include extension
       })
-      console.log(videos[0].newFilename)
 
       resolve(files.video as File[])
     })

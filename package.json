@@ -23,6 +23,7 @@
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/lodash": "^4.17.17",
+    "@types/mime": "^3.0.4",
     "@types/node": "^22.13.17",
     "eslint": "^9.23.0",
     "eslint-config-prettier": "^10.1.1",
@@ -49,6 +50,7 @@
     "formidable": "^3.5.4",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
+    "mime": "^4.0.7",
     "minimist": "^1.2.8",
     "mongodb": "^6.15.0",
     "sharp": "^0.34.2"

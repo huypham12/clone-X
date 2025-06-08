@@ -9,7 +9,8 @@ import {
   ForgotPasswordReqBody,
   VerifyForgotPasswordReqBody,
   ResetPasswordReqBody,
-  UpdateMeReqBody
+  UpdateMeReqBody,
+  RefreshTokenReqBody
 } from '~/models/requests/User.requests'
 import User from '~/models/schemas/User.schema'
 import { usersMessage } from '~/constants/messages'
@@ -55,7 +56,19 @@ export const logoutController = async (req: Request<ParamsDictionary, any, Logou
   })
 }
 
-export const refreshTokenController = async (req: Request, res: Response) => {}
+export const refreshTokenController = async (
+  req: Request<ParamsDictionary, any, RefreshTokenReqBody>,
+  res: Response
+) => {
+  console.log(req.decoded_refresh_token)
+  const { user_id, verify } = req.decoded_refresh_token as TokenPayload
+  const { refresh_token } = req.body
+  const result = await usersService.refreshToken(refresh_token, user_id, verify)
+  res.json({
+    message: usersMessage.REFRESH_TOKEN_SUCCESS,
+    result
+  })
+}
 
 export const verifyEmailController = async (req: Request<ParamsDictionary, any, VerifyEmailReqBody>, res: Response) => {
   const { user_id } = req.decoded_email_verify_token as TokenPayload

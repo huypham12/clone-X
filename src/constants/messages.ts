@@ -2,6 +2,7 @@
 export const usersMessage = {
   // User errors
   BIO_MUST_BE_STRING: 'Bio must be a string',
+  REFRESH_TOKEN_SUCCESS: 'Refresh token success',
   BIO_LENGTH_MUST_BE_FROM_1_TO_1000: 'Bio length must be between 1 and 1000 characters',
   USERNAME_MUST_BE_STRING: 'Username must be a string',
   WEBSITE_MUST_BE_URL: 'Website must be a valid URL',

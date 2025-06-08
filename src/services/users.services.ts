@@ -225,6 +225,19 @@ class UsersService {
     }
   }
 
+  async refreshToken(refresh_token: string, user_id: string, verify: UserVerifyStatus) {
+    const [refreshToken, accesToken] = await Promise.all([
+      this.signRefreshToken({ user_id, verify }),
+      this.signAccessToken({ user_id, verify }),
+      databaseService.refreshTokens.deleteOne({ token: refresh_token })
+    ])
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refreshToken })
+    )
+
+    return { refreshToken, accesToken }
+  }
+
   async verifyEmail(user_id: string) {
     // khi token gửi lên đã khớp với token được lưu trong db thì xác nhận email cho người dùng và thực hiện xóa token
     const result = await databaseService.users.updateOne(

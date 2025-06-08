@@ -30,7 +30,8 @@ import {
   followUserController,
   unfollowUserController,
   changePasswordController,
-  oauthController
+  oauthController,
+  refreshTokenController
 } from '~/controllers/users.controller'
 import { wrap } from '~/utils/handlers'
 import { filterMiddlewares } from '~/middlewares/common.middlewares'
@@ -208,5 +209,13 @@ usersRouter.put(
   changePasswordValidator,
   wrap(changePasswordController)
 )
+
+/* 
+  Description: Refresh token
+  Method: Post
+  Path: /refresh-token
+  Body: {refresh_token: string}
+*/
+usersRouter.post('/refresh-token', refreshTokenValidator, wrap(refreshTokenController))
 
 export default usersRouter

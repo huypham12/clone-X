@@ -34,12 +34,11 @@ class MediasService {
 
   async uploadVideo(req: IncomingMessage) {
     const files = await handleUploadVideo(req) // File from formidable or similar
-    const { newFilename } = files[0]
     const result = files.map((file) => {
       return {
         url: isProduction
-          ? `${process.env.HOST}/static/${path.basename(file.newFilename)}`
-          : `http://localhost:${process.env.PORT}/static/video/${path.basename(file.newFilename)}`,
+          ? `${process.env.HOST}/static/video-stream/${path.basename(file.newFilename)}`
+          : `http://localhost:${process.env.PORT}/static/video-stream/${path.basename(file.newFilename)}`,
         type: MediaType.Video
       }
     })
