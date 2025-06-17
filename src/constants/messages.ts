@@ -21,6 +21,7 @@ export const usersMessage = {
   UNFOLLOWED: 'Unfollowed',
   USERNAME_MUST_BE_ALPHANUMERIC: 'Username must be alphanumeric and can contain underscores and dots only',
   CHANGE_PASSWORD_SUCCESS: 'Change password success',
+  INVALID_REFRESH_TOKEN: 'Invalid refresh token',
   // User actions
   REGISTER_SUCCESS: 'Register success',
   LOGIN_SUCCESS: 'Login success',

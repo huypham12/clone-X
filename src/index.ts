@@ -6,13 +6,14 @@ import { config } from 'dotenv'
 import mediaRouter from './routes/medias.routes'
 import staticRouter from './routes/static.routes'
 config()
-import { insertUsers } from './services/test_index'
-insertUsers().catch(console.dir)
+// import { insertUsers } from './services/test_index'
+// insertUsers().catch(console.dir)
 
 const app = express()
 const port = process.env.PORT
 app.use(express.json()) //parse json thành object
 databaseService.connect()
+databaseService.indexUser() // tạo index cho các collection trong database
 
 app.use('/users', usersRouter)
 app.use('/medias', mediaRouter)

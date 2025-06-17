@@ -30,6 +30,14 @@ class DatabaseService {
     }
   }
 
+  async indexUser() {
+    // Tạo chỉ mục cho trường email trong collection users
+    await this.users.createIndex({ email: 1 }, { unique: true })
+    await this.users.createIndex({ username: 1 }, { unique: true })
+    // tạo index cho email và password trong collection users
+    await this.users.createIndex({ email: 1, password: 1 })
+  }
+
   async disconnect() {
     await this.client.close()
   }
