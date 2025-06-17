@@ -4,6 +4,7 @@ import { config } from 'dotenv'
 import User from '~/models/schemas/User.schema'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import Followers from '~/models/schemas/Followers.schema'
+import test from 'node:test'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@clone-x.wrxpqkb.mongodb.net/?appName=Clone-X`
@@ -46,6 +47,10 @@ class DatabaseService {
 
   get followers(): Collection<Followers> {
     return this.db.collection(process.env.DB_FOLLOWERS_COLLECTION as string)
+  }
+
+  get test() {
+    return this.db.collection('test')
   }
 }
 

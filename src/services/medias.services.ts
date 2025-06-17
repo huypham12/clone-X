@@ -9,6 +9,7 @@ import { isProduction } from '~/constants/config'
 import { MediaType } from '~/constants/enums'
 config()
 import { Media } from '~/models/Orther'
+import { encodeHLSWithMultipleVideoStreams } from '~/utils/video'
 
 class MediasService {
   async uploadImage(req: IncomingMessage) {
@@ -43,6 +44,44 @@ class MediasService {
       }
     })
     return result
+  }
+
+  async uploadVideoHLS(req: IncomingMessage) {
+    try {
+      const files = await handleUploadVideo(req)
+      const result: Media[] = await Promise.all(
+        files.map(async (file) => {
+          try {
+            // Encode video to HLS format
+            await encodeHLSWithMultipleVideoStreams(file.newFilename)
+            
+            // Clean up original video file after successful encoding
+            const originalPath = file.newFilename
+            if (fs.existsSync(originalPath)) {
+              fs.unlinkSync(originalPath)
+            }
+
+            const videoName = path.basename(file.newFilename, path.extname(file.newFilename))
+            const baseUrl = isProduction ? process.env.HOST : `http://localhost:${process.env.PORT}`
+            
+            return {
+              url: `${baseUrl}/static/video-stream/${videoName}/master.m3u8`,
+              type: MediaType.Video
+            }
+          } catch (error) {
+            // Clean up on error
+            if (fs.existsSync(file.newFilename)) {
+              fs.unlinkSync(file.newFilename)
+            }
+            throw error
+          }
+        })
+      )
+      return result
+    } catch (error) {
+      console.error('Error in uploadVideoHLS:', error)
+      throw error
+    }
   }
 }
 

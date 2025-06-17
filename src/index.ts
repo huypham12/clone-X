@@ -6,6 +6,8 @@ import { config } from 'dotenv'
 import mediaRouter from './routes/medias.routes'
 import staticRouter from './routes/static.routes'
 config()
+import { insertUsers } from './services/test_index'
+insertUsers().catch(console.dir)
 
 const app = express()
 const port = process.env.PORT

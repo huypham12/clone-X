@@ -1,1 +1,0 @@
-# Khi access token hết hạn thì người dùng gửi lên refresh token để lấy access token mới. Server sẽ tiến hành xóa refresh token, access token cũ và thực hiện tạo mới, nhưng với thời gian của refresh token cũ 

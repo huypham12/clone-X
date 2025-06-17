@@ -24,6 +24,14 @@ export const uploadVideoController = async (req: Request, res: Response, next: N
   })
 }
 
+export const uploadVideoHLSController = async (req: Request, res: Response, next: NextFunction) => {
+  const url = await mediasService.uploadVideoHLS(req as IncomingMessage)
+  res.json({
+    message: usersMessage.UPLOAD_VIDEO_SUCCESS,
+    url
+  })
+}
+
 export const serveImageController = (req: Request, res: Response, next: NextFunction) => {
   const { name } = req.params
   res.sendFile(path.resolve(UPLOAD_IMAGE_DIR, name), (err) => {
@@ -37,131 +45,175 @@ export const serveImageController = (req: Request, res: Response, next: NextFunc
 }
 
 export const serveVideoStreamController = (req: Request, res: Response, next: NextFunction): void => {
-  const range = req.headers.range
-  if (!range) {
-    res.status(400).send('Range header is required for video streaming')
-    return
+  try {
+    const range = req.headers.range
+    if (!range) {
+      res.status(400).send('Range header is required for video streaming')
+      return
+    }
+
+    const { name } = req.params
+    const videoPath = path.resolve(UPLOAD_VIDEO_DIR, name)
+
+    // Kiểm tra file tồn tại
+    if (!fs.existsSync(videoPath)) {
+      res.status(404).json({ message: 'Video not found' })
+      return
+    }
+
+    // Lấy kích thước video
+    const videoSize = fs.statSync(videoPath).size
+
+    // Parse Range header
+    const rangeMatch = range.match(/bytes=(\d+)-(\d*)/)
+    if (!rangeMatch) {
+      res.status(400).send('Invalid Range header format')
+      return
+    }
+
+    const CHUNK_SIZE = 2 * 1024 * 1024 // 2MB
+    const start = Number(rangeMatch[1])
+    const endRequested = rangeMatch[2] ? Number(rangeMatch[2]) : null
+    const end = endRequested && endRequested < videoSize ? endRequested : Math.min(start + CHUNK_SIZE - 1, videoSize - 1)
+
+    // Kiểm tra range hợp lệ
+    if (start >= videoSize || start < 0 || (endRequested && end < start)) {
+      res.status(416).send('Requested range not satisfiable')
+      return
+    }
+
+    const contentLength = end - start + 1
+    const contentType = mime.getType(videoPath) || 'video/mp4'
+
+    // Thiết lập headers
+    const headers = {
+      'Content-Range': `bytes ${start}-${end}/${videoSize}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': contentLength,
+      'Content-Type': contentType,
+      'Cache-Control': 'public, max-age=31536000',
+      'Access-Control-Allow-Origin': '*'
+    }
+
+    // Gửi phản hồi partial content
+    res.writeHead(206, headers)
+
+    // Tạo stream với highWaterMark lớn hơn
+    const videoStream = fs.createReadStream(videoPath, {
+      start,
+      end,
+      highWaterMark: 256 * 1024 // 256KB
+    })
+
+    // Xử lý lỗi stream
+    videoStream.on('error', (error) => {
+      console.error(`Stream error for ${videoPath}:`, error)
+      res.status(500).send('Error streaming video')
+    })
+
+    // Pipe stream vào response
+    videoStream.pipe(res)
+  } catch (error) {
+    console.error('Error in serveVideoStreamController:', error)
+    res.status(500).send('Internal server error')
   }
-  const { name } = req.params
-  const videoPath = path.resolve(UPLOAD_VIDEO_DIR, name)
-  // 1MB = 1000 * 1000 bytes trong hệ thập phân
-  // 1MB = 1024 * 1024 bytes trong hệ nhị phân
-  const videoSize = fs.statSync(videoPath).size
-  const CHUNK_SIZE = 2 * 1000 * 1000 // 2MB là dung lượng của mỗi đoạn video
-  // range bytes = 0 - 1310719
-  const start = Number(range.replace(/\D/g, '')) // Lấy giá trị bắt đầu từ range
-  const end = Math.min(start + CHUNK_SIZE - 1, videoSize - 1) // Tính giá trị kết thúc, đảm bảo không vượt quá kích thước video
-  // dung lượng thực tế cho mỗi đoạn video thường là chunk size ngoại trừ đoạn cuối cùng
-  const contentLength = end - start + 1 // +1 vì start và end đều bao gồm trong đoạn video
-  const contentType = mime.getType(videoPath) || 'video/mp4'
-  const headers = {
-    'Content-Range': `bytes ${start}-${end}/${videoSize}`,
-    'Accept-Ranges': 'bytes',
-    'Content-Length': contentLength,
-    'Content-Type': contentType
+}
+
+export const serveHLSController = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    const { name, variant, file } = req.params
+    console.log('HLS Request params:', { name, variant, file })
+    
+    const videoName = path.basename(name, path.extname(name))
+    console.log('Video name:', videoName)
+    
+    // Set common headers
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Cache-Control', 'public, max-age=31536000') // Cache for 1 year for segments
+    
+    // Handle master playlist
+    if (file === 'master.m3u8') {
+      const masterPath = path.resolve(UPLOAD_VIDEO_DIR, videoName, 'master.m3u8')
+      console.log('Attempting to serve master playlist from:', masterPath)
+      
+      if (!fs.existsSync(masterPath)) {
+        console.error('Master playlist not found at:', masterPath)
+        // List directory contents for debugging
+        const parentDir = path.dirname(masterPath)
+        if (fs.existsSync(parentDir)) {
+          console.log('Directory contents:', fs.readdirSync(parentDir))
+        } else {
+          console.error('Parent directory does not exist:', parentDir)
+        }
+        res.status(404).json({ message: 'Master playlist not found' })
+        return
+      }
+
+      // Read and serve the master playlist
+      const masterContent = fs.readFileSync(masterPath, 'utf-8')
+      console.log('Master playlist content:', masterContent)
+      
+      res.setHeader('Content-Type', 'application/vnd.apple.mpegurl')
+      res.setHeader('Cache-Control', 'public, max-age=60') // Cache for 1 minute
+      res.send(masterContent)
+      return
+    }
+
+    // Handle variant playlists and segments
+    if (!variant || !file) {
+      console.error('Missing variant or file parameter:', { variant, file })
+      res.status(400).json({ message: 'Missing variant or file parameter' })
+      return
+    }
+
+    const hlsPath = path.resolve(UPLOAD_VIDEO_DIR, videoName, `v${variant}`, file)
+    console.log('Attempting to serve HLS file from:', hlsPath)
+    
+    if (!fs.existsSync(hlsPath)) {
+      console.error('HLS file not found at:', hlsPath)
+      // List directory contents for debugging
+      const parentDir = path.dirname(hlsPath)
+      if (fs.existsSync(parentDir)) {
+        console.log('Directory contents:', fs.readdirSync(parentDir))
+      } else {
+        console.error('Parent directory does not exist:', parentDir)
+      }
+      res.status(404).json({ message: 'HLS file not found' })
+      return
+    }
+
+    // Set appropriate content type
+    const contentType = file.endsWith('.m3u8') 
+      ? 'application/vnd.apple.mpegurl'
+      : 'video/MP2T'
+    res.setHeader('Content-Type', contentType)
+
+    // Create read stream with optimized buffer size
+    const fileStream = fs.createReadStream(hlsPath, {
+      highWaterMark: 64 * 1024 // 64KB chunks for better performance
+    })
+
+    // Handle stream errors
+    fileStream.on('error', (error) => {
+      console.error(`Stream error for ${hlsPath}:`, error)
+      if (!res.headersSent) {
+        res.status(500).json({ message: 'Error streaming HLS content' })
+      }
+    })
+
+    // Handle client disconnect
+    req.on('close', () => {
+      fileStream.destroy()
+    })
+
+    fileStream.pipe(res)
+  } catch (error) {
+    console.error('Error in serveHLSController:', error)
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
   }
-  console.log('hi')
-  res.writeHead(httpStatus.PARTIAL_CONTENT, headers)
-  const videoStream = fs.createReadStream(videoPath, { start, end })
-  videoStream.pipe(res)
-
-  // try {
-  //   // Kiểm tra Range header
-  //   const range = req.headers.range
-  //   if (!range || !range.startsWith('bytes=')) {
-  //     // Nếu không có range, gửi toàn bộ video
-  //     const videoPath = path.resolve(UPLOAD_VIDEO_DIR, req.params.name)
-  //     if (!fs.existsSync(videoPath)) {
-  //       res.status(httpStatus.NOT_FOUND).send('Video not found')
-  //       return
-  //     }
-  //     const videoSize = fs.statSync(videoPath).size
-  //     const contentType = mime.getType(videoPath) || 'video/mp4'
-  //     res.writeHead(httpStatus.OK, {
-  //       'Content-Length': videoSize,
-  //       'Content-Type': contentType,
-  //       'Accept-Ranges': 'bytes',
-  //       'Cache-Control': 'public, max-age=31536000',
-  //       Connection: 'keep-alive'
-  //     })
-  //     fs.createReadStream(videoPath).pipe(res)
-  //     return
-  //   }
-
-  //   const { name } = req.params
-  //   const videoPath = path.resolve(UPLOAD_VIDEO_DIR, name)
-
-  //   // Kiểm tra file tồn tại
-  //   if (!fs.existsSync(videoPath)) {
-  //     res.status(httpStatus.NOT_FOUND).send('Video not found')
-  //     return
-  //   }
-
-  //   // Lấy kích thước video
-  //   const videoSize = fs.statSync(videoPath).size
-
-  //   // Parse Range header
-  //   const rangeMatch = range.match(/bytes=(\d+)-(\d*)/)
-  //   if (!rangeMatch) {
-  //     res.status(httpStatus.BAD_REQUEST).send('Invalid Range header format')
-  //     return
-  //   }
-  //   const CHUNK_SIZE = 4 * 1024 * 1024
-
-  //   const start = Number(rangeMatch[1])
-  //   const endRequested = rangeMatch[2] ? Number(rangeMatch[2]) : null
-  //   const end =
-  //     endRequested && endRequested < videoSize ? endRequested : Math.min(start + CHUNK_SIZE - 1, videoSize - 1)
-
-  //   // Kiểm tra range hợp lệ
-  //   if (start >= videoSize || start < 0 || (endRequested && end < start)) {
-  //     res.status(httpStatus.REQUESTED_RANGE_NOT_SATISFIABLE).send('Requested range not satisfiable')
-  //     return
-  //   }
-
-  //   const contentLength = end - start + 1
-  //   const contentType = mime.getType(videoPath) || 'video/mp4'
-
-  //   // Thiết lập headers
-  //   const headers = {
-  //     'Content-Range': `bytes ${start}-${end}/${videoSize}`,
-  //     'Accept-Ranges': 'bytes',
-  //     'Content-Length': contentLength,
-  //     'Content-Type': contentType,
-  //     'Cache-Control': 'public, max-age=31536000',
-  //     Connection: 'keep-alive',
-  //     'Content-Disposition': `inline; filename="${name}"` // Thêm để hỗ trợ trình phát
-  //   }
-
-  //   // Gửi phản hồi partial content
-  //   res.writeHead(httpStatus.PARTIAL_CONTENT, headers)
-
-  //   // Tạo stream với highWaterMark lớn hơn
-  //   const videoStream = fs.createReadStream(videoPath, {
-  //     start,
-  //     end,
-  //     highWaterMark: 256 * 1024 // Tăng lên 256KB
-  //   })
-
-  //   // Xử lý lỗi stream
-  //   videoStream.on('error', (error) => {
-  //     console.error(`Stream error for ${videoPath}:`, error)
-  //     res.status(httpStatus.INTERNAL_SERVER_ERROR).send('Error streaming video')
-  //   })
-
-  //   // Log chi tiết
-  //   videoStream.on('data', () => {
-  //     console.log(`Streaming ${name}, range: ${start}-${end}, sent: ${contentLength}`)
-  //   })
-
-  //   videoStream.on('end', () => {
-  //     console.log(`Finished streaming range ${start}-${end} for ${name}`)
-  //   })
-
-  //   // Pipe stream vào response
-  //   videoStream.pipe(res)
-  // } catch (error) {
-  //   console.error('Error in serveVideoStreamController:', error)
-  //   next(error)
-  // }
 }

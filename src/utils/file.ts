@@ -48,6 +48,9 @@ export const handleUploadImage = async (req: IncomingMessage) => {
 }
 
 export const handleUploadVideo = async (req: IncomingMessage) => {
+  const { nanoid } = await import('nanoid')
+  const idName = nanoid(10)
+
   const form = formidable({
     uploadDir: UPLOAD_VIDEO_DIR,
     maxFiles: 4,

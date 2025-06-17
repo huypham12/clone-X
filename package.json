@@ -20,6 +20,7 @@
     "@eslint/js": "^9.23.0",
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/lodash": "^4.17.17",
@@ -44,6 +45,7 @@
     "axios": "^1.9.0",
     "bcryptjs": "^3.0.2",
     "brcypt": "^1.0.1",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
@@ -53,6 +55,9 @@
     "mime": "^4.0.7",
     "minimist": "^1.2.8",
     "mongodb": "^6.15.0",
-    "sharp": "^0.34.2"
+    "nanoid": "^5.1.5",
+    "sharp": "^0.34.2",
+    "slash": "^5.1.0",
+    "zx": "^8.5.5"
   }
 }
