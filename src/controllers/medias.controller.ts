@@ -74,7 +74,8 @@ export const serveVideoStreamController = (req: Request, res: Response, next: Ne
     const CHUNK_SIZE = 2 * 1024 * 1024 // 2MB
     const start = Number(rangeMatch[1])
     const endRequested = rangeMatch[2] ? Number(rangeMatch[2]) : null
-    const end = endRequested && endRequested < videoSize ? endRequested : Math.min(start + CHUNK_SIZE - 1, videoSize - 1)
+    const end =
+      endRequested && endRequested < videoSize ? endRequested : Math.min(start + CHUNK_SIZE - 1, videoSize - 1)
 
     // Kiểm tra range hợp lệ
     if (start >= videoSize || start < 0 || (endRequested && end < start)) {
@@ -123,19 +124,19 @@ export const serveHLSController = (req: Request, res: Response, next: NextFuncti
   try {
     const { name, variant, file } = req.params
     console.log('HLS Request params:', { name, variant, file })
-    
+
     const videoName = path.basename(name, path.extname(name))
     console.log('Video name:', videoName)
-    
+
     // Set common headers
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Cache-Control', 'public, max-age=31536000') // Cache for 1 year for segments
-    
+
     // Handle master playlist
     if (file === 'master.m3u8') {
       const masterPath = path.resolve(UPLOAD_VIDEO_DIR, videoName, 'master.m3u8')
       console.log('Attempting to serve master playlist from:', masterPath)
-      
+
       if (!fs.existsSync(masterPath)) {
         console.error('Master playlist not found at:', masterPath)
         // List directory contents for debugging
@@ -152,7 +153,7 @@ export const serveHLSController = (req: Request, res: Response, next: NextFuncti
       // Read and serve the master playlist
       const masterContent = fs.readFileSync(masterPath, 'utf-8')
       console.log('Master playlist content:', masterContent)
-      
+
       res.setHeader('Content-Type', 'application/vnd.apple.mpegurl')
       res.setHeader('Cache-Control', 'public, max-age=60') // Cache for 1 minute
       res.send(masterContent)
@@ -168,7 +169,7 @@ export const serveHLSController = (req: Request, res: Response, next: NextFuncti
 
     const hlsPath = path.resolve(UPLOAD_VIDEO_DIR, videoName, `v${variant}`, file)
     console.log('Attempting to serve HLS file from:', hlsPath)
-    
+
     if (!fs.existsSync(hlsPath)) {
       console.error('HLS file not found at:', hlsPath)
       // List directory contents for debugging
@@ -183,9 +184,7 @@ export const serveHLSController = (req: Request, res: Response, next: NextFuncti
     }
 
     // Set appropriate content type
-    const contentType = file.endsWith('.m3u8') 
-      ? 'application/vnd.apple.mpegurl'
-      : 'video/MP2T'
+    const contentType = file.endsWith('.m3u8') ? 'application/vnd.apple.mpegurl' : 'video/MP2T'
     res.setHeader('Content-Type', contentType)
 
     // Create read stream with optimized buffer size
@@ -210,7 +209,7 @@ export const serveHLSController = (req: Request, res: Response, next: NextFuncti
   } catch (error) {
     console.error('Error in serveHLSController:', error)
     if (!res.headersSent) {
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Internal server error',
         error: error instanceof Error ? error.message : 'Unknown error'
       })

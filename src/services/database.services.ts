@@ -5,6 +5,7 @@ import User from '~/models/schemas/User.schema'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import Followers from '~/models/schemas/Followers.schema'
 import test from 'node:test'
+import e from 'express'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@clone-x.wrxpqkb.mongodb.net/?appName=Clone-X`
@@ -31,11 +32,36 @@ class DatabaseService {
   }
 
   async indexUser() {
+    const exists = await this.users.indexExists(['email_1', 'username_1', 'email_1_password_1'])
+    if (exists) {
+      console.log('Index already exists for users collection')
+      return
+    }
+    console.log('Creating index for users collection...')
     // Tạo chỉ mục cho trường email trong collection users
     await this.users.createIndex({ email: 1 }, { unique: true })
     await this.users.createIndex({ username: 1 }, { unique: true })
     // tạo index cho email và password trong collection users
     await this.users.createIndex({ email: 1, password: 1 })
+  }
+
+  async indexRefreshToken() {
+    const exists = await this.refreshTokens.indexExists(['token_1', 'exp_1'])
+    if (exists) {
+      console.log('Index already exists for refresh token collection')
+      return
+    }
+    await this.refreshTokens.createIndex({ token: 1 })
+    await this.refreshTokens.createIndex({ exp: 1 }, { expireAfterSeconds: 0 }) //tự động xóa token sau khi hết hạn
+  }
+
+  async indexFollowers() {
+    const exists = await this.followers.indexExists(['userId_1_followerId_1'])
+    if (exists) {
+      console.log('Index already exists for followers collection')
+      return
+    }
+    await this.followers.createIndex({ userId: 1, followerId: 1 }, { unique: true }) // tạo index cho userId và followerId
   }
 
   async disconnect() {

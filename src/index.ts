@@ -14,6 +14,8 @@ const port = process.env.PORT
 app.use(express.json()) //parse json thành object
 databaseService.connect()
 databaseService.indexUser() // tạo index cho các collection trong database
+databaseService.indexRefreshToken()
+databaseService.indexFollowers()
 
 app.use('/users', usersRouter)
 app.use('/medias', mediaRouter)
