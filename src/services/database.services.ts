@@ -34,7 +34,6 @@ class DatabaseService {
   async indexUser() {
     const exists = await this.users.indexExists(['email_1', 'username_1', 'email_1_password_1'])
     if (exists) {
-      console.log('Index already exists for users collection')
       return
     }
     console.log('Creating index for users collection...')
@@ -48,7 +47,6 @@ class DatabaseService {
   async indexRefreshToken() {
     const exists = await this.refreshTokens.indexExists(['token_1', 'exp_1'])
     if (exists) {
-      console.log('Index already exists for refresh token collection')
       return
     }
     await this.refreshTokens.createIndex({ token: 1 })
@@ -58,7 +56,6 @@ class DatabaseService {
   async indexFollowers() {
     const exists = await this.followers.indexExists(['userId_1_followerId_1'])
     if (exists) {
-      console.log('Index already exists for followers collection')
       return
     }
     await this.followers.createIndex({ userId: 1, followerId: 1 }, { unique: true }) // tạo index cho userId và followerId

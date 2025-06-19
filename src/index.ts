@@ -5,6 +5,7 @@ import { defaultErrorHandler } from './middlewares/error.middlewares'
 import { config } from 'dotenv'
 import mediaRouter from './routes/medias.routes'
 import staticRouter from './routes/static.routes'
+import tweetsRouter from './routes/tweets.routes'
 config()
 // import { insertUsers } from './services/test_index'
 // insertUsers().catch(console.dir)
@@ -19,6 +20,7 @@ databaseService.indexFollowers()
 
 app.use('/users', usersRouter)
 app.use('/medias', mediaRouter)
+app.use('/tweets', tweetsRouter)
 app.use('/static', staticRouter) // phục vụ các file tĩnh trong thư mục UPLOAD_IMAGE_DIR
 // app.use('/static', express.static(UPLOAD_IMAGE_DIR)) // phục vụ các file tĩnh trong thư mục UPLOAD_IMAGE_DIR
 

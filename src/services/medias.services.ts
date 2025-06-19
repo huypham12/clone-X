@@ -54,7 +54,7 @@ class MediasService {
           try {
             // Encode video to HLS format
             await encodeHLSWithMultipleVideoStreams(file.newFilename)
-            
+
             // Clean up original video file after successful encoding
             const originalPath = file.newFilename
             if (fs.existsSync(originalPath)) {
@@ -63,7 +63,7 @@ class MediasService {
 
             const videoName = path.basename(file.newFilename, path.extname(file.newFilename))
             const baseUrl = isProduction ? process.env.HOST : `http://localhost:${process.env.PORT}`
-            
+
             return {
               url: `${baseUrl}/static/video-stream/${videoName}/master.m3u8`,
               type: MediaType.Video

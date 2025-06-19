@@ -1,4 +1,4 @@
-import e, { Request, Response, NextFunction } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { checkSchema, ParamSchema } from 'express-validator'
 import { validate } from '~/utils/validation'
 import usersService from '~/services/users.services'
