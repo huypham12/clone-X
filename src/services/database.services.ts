@@ -9,6 +9,8 @@ import e from 'express'
 import Tweet from '~/models/schemas/Tweet.schema'
 import Hashtags from '~/models/schemas/Hashtags.schema'
 import { Hash } from 'crypto'
+import BookmarkModel from '~/models/schemas/Bookmarks.schema'
+import LikeModel from '~/models/schemas/Likes.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@clone-x.wrxpqkb.mongodb.net/?appName=Clone-X`
@@ -89,6 +91,14 @@ class DatabaseService {
   }
   get hashtags(): Collection<Hashtags> {
     return this.db.collection(process.env.DB_HASHTAGS_COLLECTION as string)
+  }
+
+  get bookmarks(): Collection<BookmarkModel> {
+    return this.db.collection(process.env.DB_BOOKMARKS_COLLECTION as string)
+  }
+
+   get likes(): Collection<LikeModel> {
+    return this.db.collection(process.env.DB_LIKES_COLLECTION as string)
   }
 
   get test() {

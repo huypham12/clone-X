@@ -10,3 +10,7 @@ export interface TweetReqBody {
   mentions?: string[] // Mảng chứa các mention liên quan đến tweet
   medias?: Media[] // Mảng chứa các media liên quan đến tweet
 }
+
+export interface BookmarkTweetReqBody {
+  tweet_id: string // ID của tweet cần bookmark
+}
