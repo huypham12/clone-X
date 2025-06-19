@@ -6,6 +6,9 @@ import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import Followers from '~/models/schemas/Followers.schema'
 import test from 'node:test'
 import e from 'express'
+import Tweet from '~/models/schemas/Tweet.schema'
+import Hashtags from '~/models/schemas/Hashtags.schema'
+import { Hash } from 'crypto'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@clone-x.wrxpqkb.mongodb.net/?appName=Clone-X`
@@ -15,6 +18,7 @@ const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}
 class DatabaseService {
   private client: MongoClient
   private db: Db
+  ObjectId: any
   constructor() {
     this.client = new MongoClient(uri)
     this.db = this.client.db(process.env.DB_NAME)
@@ -78,6 +82,13 @@ class DatabaseService {
 
   get followers(): Collection<Followers> {
     return this.db.collection(process.env.DB_FOLLOWERS_COLLECTION as string)
+  }
+
+  get tweets(): Collection<Tweet> {
+    return this.db.collection(process.env.DB_TWEETS_COLLECTION as string)
+  }
+  get hashtags(): Collection<Hashtags> {
+    return this.db.collection(process.env.DB_HASHTAGS_COLLECTION as string)
   }
 
   get test() {

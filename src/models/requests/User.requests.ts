@@ -35,7 +35,6 @@ export interface TokenPayload extends JwtPayload {
   verify: UserVerifyStatus
   iat: number
   exp: number
-  
 }
 
 export interface ForgotPasswordReqBody {

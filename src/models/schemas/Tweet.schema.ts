@@ -1,11 +1,11 @@
 // Tweets
 
 import { ObjectId } from 'mongodb'
-import { TweetAudience } from '~/constants/enums'
+import { TweetAudience, TweetType } from '~/constants/enums'
 import { Media } from '../Orther'
 
-interface TweetType {
-  _id: ObjectId
+interface TweetConstructor {
+  _id?: ObjectId
   user_id: ObjectId // Người sở hữu tweet
   type: TweetType
   audience: TweetAudience
@@ -14,8 +14,8 @@ interface TweetType {
   hashtags: ObjectId[]
   mentions: ObjectId[]
   medias: Media[]
-  guest_views: number
-  user_views: number
+  guest_views?: number
+  user_views?: number
   created_at?: Date
   updated_at?: Date
 }
@@ -30,25 +30,25 @@ export default class Tweet {
   hashtags: ObjectId[] // Mảng chứa các hashtag liên quan đến tweet
   mentions: ObjectId[]
   medias: Media[]
-  guest_views: number
-  user_views: number
-  created_at: Date
-  updated_at: Date
+  guest_views?: number
+  user_views?: number
+  created_at?: Date
+  updated_at?: Date
 
-  constructor(twwet: TweetType) {
+  constructor(tweet: TweetConstructor) {
     const date = new Date()
-    this._id = twwet._id || new ObjectId()
-    this.user_id = twwet.user_id
-    this.type = twwet.type
-    this.audience = twwet.audience || TweetAudience.Everyone
-    this.content = twwet.content || ''
-    this.parent_id = twwet.parent_id || null
-    this.hashtags = twwet.hashtags || []
-    this.mentions = twwet.mentions || []
-    this.medias = twwet.medias || []
-    this.guest_views = twwet.guest_views || 0
-    this.user_views = twwet.user_views || 0
-    this.created_at = twwet.created_at || date
-    this.updated_at = twwet.updated_at || date
+    this._id = tweet._id || new ObjectId()
+    this.user_id = tweet.user_id
+    this.type = tweet.type
+    this.audience = tweet.audience || TweetAudience.Everyone
+    this.content = tweet.content || ''
+    this.parent_id = tweet.parent_id || null
+    this.hashtags = tweet.hashtags || []
+    this.mentions = tweet.mentions || []
+    this.medias = tweet.medias || []
+    this.guest_views = tweet.guest_views || 0
+    this.user_views = tweet.user_views || 0
+    this.created_at = tweet.created_at || date
+    this.updated_at = tweet.updated_at || date
   }
 }
