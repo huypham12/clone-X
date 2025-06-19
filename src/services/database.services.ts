@@ -97,7 +97,7 @@ class DatabaseService {
     return this.db.collection(process.env.DB_BOOKMARKS_COLLECTION as string)
   }
 
-   get likes(): Collection<LikeModel> {
+  get likes(): Collection<LikeModel> {
     return this.db.collection(process.env.DB_LIKES_COLLECTION as string)
   }
 

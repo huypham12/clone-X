@@ -14,3 +14,7 @@ export interface TweetReqBody {
 export interface BookmarkTweetReqBody {
   tweet_id: string // ID của tweet cần bookmark
 }
+
+export interface LikeTweetReqBody {
+  tweet_id: string // ID của tweet cần like
+}

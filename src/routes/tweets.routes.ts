@@ -1,6 +1,12 @@
 import { create } from 'axios'
 import { Router } from 'express'
-import { bookmarkTweetController, createTweetsController, unbookmarkTweetController } from '~/controllers/tweets.controller'
+import {
+  bookmarkTweetController,
+  createTweetsController,
+  likeTweetController,
+  unbookmarkTweetController,
+  unlikeTweetController
+} from '~/controllers/tweets.controller'
 import { createTweetValidator } from '~/middlewares/tweets.middlewares'
 import { accessTokenValidator, verifiedUserValidator } from '~/middlewares/users.middlewares'
 import { wrap } from '~/utils/handlers'
@@ -41,6 +47,27 @@ tweetsRouter.delete(
   accessTokenValidator,
   verifiedUserValidator,
   wrap(unbookmarkTweetController) // Assuming the same controller handles both bookmark and unbookmark
+)
+
+/*
+  Description: Like a tweet
+  Method: POST
+  Headers: Authorization (Bearer token)
+  Body: { tweetId: string }
+*/
+tweetsRouter.post('/likes', accessTokenValidator, verifiedUserValidator, wrap(likeTweetController))
+
+/*
+  Description: unlike a tweet
+  Method: DELETE
+  Headers: Authorization (Bearer token)
+  Path: /bookmarks/:tweet_id
+*/
+tweetsRouter.delete(
+  '/likes/:tweet_id',
+  accessTokenValidator,
+  verifiedUserValidator,
+  wrap(unlikeTweetController) // Assuming the same controller handles both bookmark and unbookmark
 )
 
 export default tweetsRouter

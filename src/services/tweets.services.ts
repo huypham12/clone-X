@@ -5,6 +5,7 @@ import { ObjectId, WithId } from 'mongodb'
 import Hashtag from '~/models/schemas/Hashtags.schema'
 import { hash } from 'crypto'
 import BookmarkModel from '~/models/schemas/Bookmarks.schema'
+import LikeModel from '~/models/schemas/Likes.schema'
 
 class TweetService {
   async checkAndCreateHashtags(hashtags: string[]) {
@@ -62,6 +63,32 @@ class TweetService {
 
   async unbookmarkTweet(user_id: string, tweet_id: string) {
     const result = await databaseService.bookmarks.findOneAndDelete({
+      user_id: new ObjectId(user_id),
+      tweet_id: new ObjectId(tweet_id)
+    })
+
+    return result
+  }
+
+  async likeTweet(user_id: string, tweet_id: string) {
+    const result = await databaseService.likes.findOneAndUpdate(
+      { user_id: new ObjectId(user_id), tweet_id: new ObjectId(tweet_id) },
+      {
+        $setOnInsert: new LikeModel({
+          user_id: new ObjectId(user_id),
+          tweet_id: new ObjectId(tweet_id)
+        })
+      },
+      {
+        upsert: true,
+        returnDocument: 'after'
+      }
+    )
+    return result
+  }
+
+  async unlikeTweet(user_id: string, tweet_id: string) {
+    const result = await databaseService.likes.findOneAndDelete({
       user_id: new ObjectId(user_id),
       tweet_id: new ObjectId(tweet_id)
     })
