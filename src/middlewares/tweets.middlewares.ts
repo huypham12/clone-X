@@ -5,6 +5,10 @@ import { numberEnumToArray } from '~/utils/common'
 import { TweetAudience } from '~/constants/enums'
 import { ObjectId } from 'mongodb'
 import { isEmpty } from 'lodash'
+import databaseService from '~/services/database.services'
+import { Request, Response, NextFunction } from 'express'
+import Tweet from '~/models/schemas/Tweet.schema'
+import { ErrorWithStatus } from '~/models/errors'
 
 const tweetType = numberEnumToArray(TweetType)
 const tweetAudience = numberEnumToArray(TweetAudience)
@@ -131,3 +135,66 @@ export const createTweetValidator = validate(
     ['body']
   )
 )
+
+export const tweetIdValidator = validate(
+  checkSchema(
+    {
+      tweet_id: {
+        isMongoId: {
+          errorMessage: 'Invalid tweet id'
+        },
+        custom: {
+          options: async (value, { req }) => {
+            const tweet = await databaseService.tweets.findOne({
+              _id: new ObjectId(value as string)
+            })
+            if (!tweet) {
+              throw new Error('Tweet not found')
+            }
+            ;(req as Request).tweet = tweet // gán tweet vào req để các controller có thể sử dụng
+            return true
+          }
+        }
+      }
+    },
+    ['params', 'body']
+  )
+)
+
+// nhận vào một handler(request, response, next) và trả về một handler khác
+export const isUserLoggedInValidator = (middleware: (req: Request, res: Response, next: NextFunction) => void) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    // req.header và req.headers
+    // headers là một object chứa tất cả các header của request, tên của header sẽ được chuyển thành chữ thường
+    // req.header(name) là method của express để lấy giá trị của một header cụ thể không phân biệt hoa thường
+    if (req.headers.authorization) {
+      return middleware(req, res, next) // có access token thì gọi access token validator để check, không thì thôi, vì cái tweet có thể là public tweet hoặc twitter circle cần đăng nhập để xem
+    }
+    next()
+  }
+}
+
+// check xem audience có được phép truy cập đến tweet hay không
+// nếu là public tweet thì không cần check audience, nếu là twitter circle thì cần check xem
+export const audienceValidator = async (req: Request, res: Response, next: NextFunction) => {
+  const tweet = (req as Request).tweet as Tweet
+  if (tweet.audience === TweetAudience.TwitterCircle) {
+    // kiểm tra xem user có phải là member của twitter circle đó hay không
+    const { user_id } = req.decoded_authorization as { user_id: string }
+
+    const author = await databaseService.users.findOne({
+      _id: tweet.user_id as ObjectId
+    })
+    const isMember = author?.twitter_circle?.some((user_circle_id) => user_circle_id.equals(new ObjectId(user_id)))
+    if (!isMember && !author?._id.equals(new ObjectId(user_id))) {
+      return next(
+        new ErrorWithStatus({
+          message: 'You are not a member of this Twitter Circle',
+          status: 403
+        })
+      )
+    }
+    return next()
+  }
+  return next() // nếu là public tweet thì không cần check audience, nếu là twitter circle thì cần check xem user có phải là member của twitter circle đó hay không
+}

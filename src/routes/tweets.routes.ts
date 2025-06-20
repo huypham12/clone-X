@@ -1,13 +1,19 @@
-import { create } from 'axios'
+import { create, get } from 'axios'
 import { Router } from 'express'
 import {
   bookmarkTweetController,
   createTweetsController,
+  getTweetController,
   likeTweetController,
   unbookmarkTweetController,
   unlikeTweetController
 } from '~/controllers/tweets.controller'
-import { createTweetValidator } from '~/middlewares/tweets.middlewares'
+import {
+  audienceValidator,
+  createTweetValidator,
+  isUserLoggedInValidator,
+  tweetIdValidator
+} from '~/middlewares/tweets.middlewares'
 import { accessTokenValidator, verifiedUserValidator } from '~/middlewares/users.middlewares'
 import { wrap } from '~/utils/handlers'
 
@@ -29,12 +35,33 @@ tweetsRouter.post(
 )
 
 /*
+  Description: Get tweet
+  Method: GET
+  Path: /
+  Headers: Authorization (Bearer token)
+*/
+tweetsRouter.get(
+  '/:tweet_id',
+  isUserLoggedInValidator(accessTokenValidator),
+  isUserLoggedInValidator(verifiedUserValidator),
+  tweetIdValidator,
+  wrap(audienceValidator),
+  wrap(getTweetController)
+)
+
+/*
   Description: Bookmark a tweet
   Method: POST
   Headers: Authorization (Bearer token)
   Body: { tweetId: string }
 */
-tweetsRouter.post('/bookmarks', accessTokenValidator, verifiedUserValidator, wrap(bookmarkTweetController))
+tweetsRouter.post(
+  '/bookmarks',
+  accessTokenValidator,
+  verifiedUserValidator,
+  tweetIdValidator,
+  wrap(bookmarkTweetController)
+)
 
 /*
   Description: Unbookmark a tweet
@@ -46,6 +73,7 @@ tweetsRouter.delete(
   '/bookmarks/:tweet_id',
   accessTokenValidator,
   verifiedUserValidator,
+  tweetIdValidator,
   wrap(unbookmarkTweetController) // Assuming the same controller handles both bookmark and unbookmark
 )
 
@@ -55,7 +83,7 @@ tweetsRouter.delete(
   Headers: Authorization (Bearer token)
   Body: { tweetId: string }
 */
-tweetsRouter.post('/likes', accessTokenValidator, verifiedUserValidator, wrap(likeTweetController))
+tweetsRouter.post('/likes', accessTokenValidator, verifiedUserValidator, tweetIdValidator, wrap(likeTweetController))
 
 /*
   Description: unlike a tweet
@@ -67,6 +95,7 @@ tweetsRouter.delete(
   '/likes/:tweet_id',
   accessTokenValidator,
   verifiedUserValidator,
+  tweetIdValidator,
   wrap(unlikeTweetController) // Assuming the same controller handles both bookmark and unbookmark
 )
 

@@ -14,6 +14,12 @@ export const createTweetsController = async (req: Request, res: Response, next: 
   })
 }
 
+export const getTweetController = async (req: Request<ParamsDictionary>, res: Response, next: NextFunction) => {
+  res.json({
+    message: 'Get tweet successfully'
+  })
+}
+
 export const bookmarkTweetController = async (
   req: Request<ParamsDictionary, any, BookmarkTweetReqBody>,
   res: Response,
