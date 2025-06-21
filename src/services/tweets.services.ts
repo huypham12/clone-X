@@ -7,6 +7,7 @@ import { hash } from 'crypto'
 import BookmarkModel from '~/models/schemas/Bookmarks.schema'
 import LikeModel from '~/models/schemas/Likes.schema'
 import { TweetType } from '~/constants/enums'
+import { update } from 'lodash'
 
 class TweetService {
   async checkAndCreateHashtags(hashtags: string[]) {
@@ -109,7 +110,8 @@ class TweetService {
         returnDocument: 'after',
         projection: {
           guest_views: 1,
-          user_views: 1
+          user_views: 1,
+          updated_at: 1
         }
       }
     )
@@ -120,13 +122,16 @@ class TweetService {
     tweet_id,
     tweet_type,
     page,
-    limit
+    limit,
+    user_id
   }: {
     tweet_id: string
     tweet_type: TweetType
     page: number
     limit: number
+    user_id?: string
   }) {
+    // lấy các tweet con theo điều kiện cụ thể
     const tweets = await databaseService.tweets
       .aggregate<Tweet>([
         {
@@ -231,9 +236,6 @@ class TweetService {
                   }
                 }
               }
-            },
-            views: {
-              $add: ['$user_views', '$guest_views']
             }
           }
         },
@@ -251,7 +253,31 @@ class TweetService {
       ])
       .toArray()
 
-    const total = await databaseService.tweets.countDocuments({ parent_id: new ObjectId(tweet_id), type: tweet_type })
+    const ids = tweets.map((tweet) => tweet._id as ObjectId)
+    const inc = user_id ? { user_views: 1 } : { guest_views: 1 }
+    const date = new Date()
+    const [, total] = await Promise.all([
+      databaseService.tweets.updateMany(
+        { _id: { $in: ids } },
+        {
+          $inc: inc,
+          $set: {
+            updated_at: date
+          }
+        }
+      ),
+      databaseService.tweets.countDocuments({ parent_id: new ObjectId(tweet_id), type: tweet_type })
+    ])
+
+    tweets.forEach((tweet) => {
+      tweet.updated_at = date
+      if (user_id) {
+        ;(tweet.user_views as number) += 1
+      } else {
+        ;(tweet.guest_views as number) += 1
+      }
+    })
+
     return { tweets, total }
   }
 }

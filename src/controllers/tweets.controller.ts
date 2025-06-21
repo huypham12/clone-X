@@ -27,6 +27,7 @@ export const getTweetController = async (req: Request<ParamsDictionary>, res: Re
 }
 
 export const getTweetChildrenController = async (req: Request<ParamsDictionary>, res: Response, next: NextFunction) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
   const tweet_type = Number(req.query.tweet_type) as TweetType
   const page = Number(req.query.page) || 1
   const limit = Number(req.query.limit) || 5
@@ -34,7 +35,8 @@ export const getTweetChildrenController = async (req: Request<ParamsDictionary>,
     tweet_id: req.params.tweet_id,
     tweet_type,
     page,
-    limit
+    limit,
+    user_id
   })
 
   res.json({
