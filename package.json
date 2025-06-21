@@ -18,6 +18,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@eslint/js": "^9.23.0",
+    "@faker-js/faker": "^9.8.0",
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",

@@ -6,6 +6,7 @@ import { config } from 'dotenv'
 import mediaRouter from './routes/medias.routes'
 import staticRouter from './routes/static.routes'
 import tweetsRouter from './routes/tweets.routes'
+// import '~/utils/faker' // import để chạy hàm tạo dữ liệu giả, không cần sử dụng trực tiếp
 config()
 // import { insertUsers } from './services/test_index'
 // insertUsers().catch(console.dir)
