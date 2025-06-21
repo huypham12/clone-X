@@ -120,7 +120,7 @@ class UsersService {
       user_id: user_id.toString(),
       verify: UserVerifyStatus.Unverified
     })
-    const [accessToken, refreshToken] = await this.signAccessAndRefreshToken({
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
       user_id: user_id.toString(),
       verify: UserVerifyStatus.Unverified
     })
@@ -137,8 +137,8 @@ class UsersService {
     // nên trả về kết quả của việc insert để sau này có thể lấy insertedId dùng cho việc tạo token gì đó (tạm thời chưa biết)
 
     return {
-      accessToken,
-      refreshToken,
+      access_token,
+      refresh_token,
       email_verify_token
     }
   }
