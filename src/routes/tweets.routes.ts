@@ -3,6 +3,7 @@ import { Router } from 'express'
 import {
   bookmarkTweetController,
   createTweetsController,
+  getTweetChildrenController,
   getTweetController,
   likeTweetController,
   unbookmarkTweetController,
@@ -47,6 +48,23 @@ tweetsRouter.get(
   tweetIdValidator,
   wrap(audienceValidator),
   wrap(getTweetController)
+)
+
+/*
+  Description: Get tweet children
+  Method: GET
+  Path: /:tweet_id/children
+  Headers: Authorization (Bearer token)
+  Query: { page: number, limit: number, tweet_type: TweetType }
+
+*/
+tweetsRouter.get(
+  '/:tweet_id/children',
+  isUserLoggedInValidator(accessTokenValidator),
+  isUserLoggedInValidator(verifiedUserValidator),
+  tweetIdValidator,
+  wrap(audienceValidator),
+  wrap(getTweetChildrenController)
 )
 
 /*

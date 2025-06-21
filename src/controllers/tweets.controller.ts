@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
+import { TweetType } from '~/constants/enums'
 import { BookmarkTweetReqBody, LikeTweetReqBody } from '~/models/requests/Tweet.requests'
 import { TokenPayload } from '~/models/requests/User.requests'
 import Tweet from '~/models/schemas/Tweet.schema'
@@ -22,6 +23,27 @@ export const getTweetController = async (req: Request<ParamsDictionary>, res: Re
   res.json({
     message: 'Get tweet successfully',
     tweet
+  })
+}
+
+export const getTweetChildrenController = async (req: Request<ParamsDictionary>, res: Response, next: NextFunction) => {
+  const tweet_type = Number(req.query.tweet_type) as TweetType
+  const page = Number(req.query.page) || 1
+  const limit = Number(req.query.limit) || 5
+  const result = await tweetService.getTweetChildren({
+    tweet_id: req.params.tweet_id,
+    tweet_type,
+    page,
+    limit
+  })
+
+  res.json({
+    message: 'Get tweet children successfully',
+    tweets: result.tweets,
+    page,
+    limit,
+    total: result.total,
+    total_pages: Math.ceil(result.total / limit)
   })
 }
 
