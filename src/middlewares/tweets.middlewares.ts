@@ -309,3 +309,41 @@ export const audienceValidator = async (req: Request, res: Response, next: NextF
   }
   return next() // nếu là public tweet thì không cần check audience, nếu là twitter circle thì cần check xem user có phải là member của twitter circle đó hay không
 }
+
+export const getTweetChildrenValidator = validate(
+  checkSchema(
+    {
+      tweet_type: {
+        isIn: {
+          options: [tweetType],
+          errorMessage: 'Invalid tweet type'
+        }
+      },
+      limit: {
+        isNumeric: true,
+        custom: {
+          options: async (values, { req }) => {
+            const limit = Number(values)
+            if (limit < 1 || limit > 100) {
+              throw new Error('Limit must be between 1 and 100')
+            }
+            return true
+          }
+        }
+      },
+      page: {
+        isNumeric: true,
+        custom: {
+          options: async (values, { req }) => {
+            const page = Number(values)
+            if (page < 1) {
+              throw new Error('Page must be greater than 0')
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['query']
+  )
+)

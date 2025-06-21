@@ -1,5 +1,7 @@
 import { TweetAudience, TweetType } from '~/constants/enums'
 import { Media } from '../Orther'
+import { ParamsDictionary, Query } from 'express-serve-static-core'
+import { extend } from 'lodash'
 
 export interface TweetReqBody {
   type: TweetType // Loại tweet
@@ -17,4 +19,14 @@ export interface BookmarkTweetReqBody {
 
 export interface LikeTweetReqBody {
   tweet_id: string // ID của tweet cần like
+}
+
+export interface TweetParam extends ParamsDictionary {
+  tweet_id: string // ID của tweet
+}
+
+export interface TweetQuery extends Query {
+  page: string
+  limit: string
+  tweet_type: string
 }
