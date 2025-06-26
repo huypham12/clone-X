@@ -3,6 +3,7 @@ import { Router } from 'express'
 import {
   bookmarkTweetController,
   createTweetsController,
+  getNewFeedController,
   getTweetChildrenController,
   getTweetController,
   likeTweetController,
@@ -14,12 +15,29 @@ import {
   createTweetValidator,
   getTweetChildrenValidator,
   isUserLoggedInValidator,
+  paginationValidator,
   tweetIdValidator
 } from '~/middlewares/tweets.middlewares'
 import { accessTokenValidator, verifiedUserValidator } from '~/middlewares/users.middlewares'
 import { wrap } from '~/utils/handlers'
 
 const tweetsRouter = Router()
+
+/*
+  Description: Get new feed 
+  Method: GET
+  Path: /new-feed
+  Headers: Authorization (Bearer token)
+  Query: { page: number, limit: number }
+
+*/
+tweetsRouter.get(
+  '/new-feed',
+  accessTokenValidator,
+  verifiedUserValidator,
+  paginationValidator,
+  wrap(getNewFeedController)
+)
 
 /*
   Description: Create a new tweet
@@ -34,39 +52,6 @@ tweetsRouter.post(
   verifiedUserValidator,
   createTweetValidator,
   wrap(createTweetsController)
-)
-
-/*
-  Description: Get tweet
-  Method: GET
-  Path: /
-  Headers: Authorization (Bearer token)
-*/
-tweetsRouter.get(
-  '/:tweet_id',
-  isUserLoggedInValidator(accessTokenValidator),
-  isUserLoggedInValidator(verifiedUserValidator),
-  tweetIdValidator,
-  wrap(audienceValidator),
-  wrap(getTweetController)
-)
-
-/*
-  Description: Get tweet children
-  Method: GET
-  Path: /:tweet_id/children
-  Headers: Authorization (Bearer token)
-  Query: { page: number, limit: number, tweet_type: TweetType }
-
-*/
-tweetsRouter.get(
-  '/:tweet_id/children',
-  isUserLoggedInValidator(accessTokenValidator),
-  isUserLoggedInValidator(verifiedUserValidator),
-  tweetIdValidator,
-  getTweetChildrenValidator,
-  wrap(audienceValidator),
-  wrap(getTweetChildrenController)
 )
 
 /*
@@ -117,6 +102,40 @@ tweetsRouter.delete(
   verifiedUserValidator,
   tweetIdValidator,
   wrap(unlikeTweetController) // Assuming the same controller handles both bookmark and unbookmark
+)
+
+/*
+  Description: Get tweet
+  Method: GET
+  Path: /
+  Headers: Authorization (Bearer token)
+*/
+tweetsRouter.get(
+  '/:tweet_id',
+  isUserLoggedInValidator(accessTokenValidator),
+  isUserLoggedInValidator(verifiedUserValidator),
+  tweetIdValidator,
+  wrap(audienceValidator),
+  wrap(getTweetController)
+)
+
+/*
+  Description: Get tweet children
+  Method: GET
+  Path: /:tweet_id/children
+  Headers: Authorization (Bearer token)
+  Query: { page: number, limit: number, tweet_type: TweetType }
+
+*/
+tweetsRouter.get(
+  '/:tweet_id/children',
+  isUserLoggedInValidator(accessTokenValidator),
+  isUserLoggedInValidator(verifiedUserValidator),
+  tweetIdValidator,
+  getTweetChildrenValidator,
+  paginationValidator,
+  wrap(audienceValidator),
+  wrap(getTweetChildrenController)
 )
 
 export default tweetsRouter

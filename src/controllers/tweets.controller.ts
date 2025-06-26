@@ -49,6 +49,21 @@ export const getTweetChildrenController = async (req: Request<ParamsDictionary>,
   })
 }
 
+export const getNewFeedController = async (req: Request<ParamsDictionary>, res: Response, next: NextFunction) => {
+  const user_id = req.decoded_authorization?.user_id as string
+  const page = Number(req.query.page) || 1
+  const limit = Number(req.query.limit) || 5
+  const result = await tweetService.getNewFeed({
+    user_id,
+    page,
+    limit
+  })
+  res.json({
+    message: 'Get new feed successfully',
+    tweets: result
+  })
+}
+
 export const bookmarkTweetController = async (
   req: Request<ParamsDictionary, any, BookmarkTweetReqBody>,
   res: Response,
