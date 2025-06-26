@@ -401,7 +401,7 @@ export const encodeHLSWithMultipleVideoStreams = async (inputPath: string) => {
 
     // Verify HLS file structure after encoding
     console.log('Verifying HLS file structure in:', hlsDir)
-    
+
     if (!fs.existsSync(hlsDir)) {
       throw new Error(`HLS directory not created: ${hlsDir}`)
     }

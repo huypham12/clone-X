@@ -6,7 +6,14 @@ import { config } from 'dotenv'
 import mediaRouter from './routes/medias.routes'
 import staticRouter from './routes/static.routes'
 import tweetsRouter from './routes/tweets.routes'
-// import '~/utils/faker' // import để chạy hàm tạo dữ liệu giả, không cần sử dụng trực tiếp
+// Import và chạy faker script
+// import faker from '~/utils/faker'
+// // Chạy faker nếu NODE_ENV là development
+// if (process.env.NODE_ENV === 'development') {
+//   faker().catch((err) => {
+//     console.error('Error running faker:', err)
+//   })
+// }
 config()
 // import { insertUsers } from './services/test_index'
 // insertUsers().catch(console.dir)

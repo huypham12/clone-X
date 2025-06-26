@@ -10,7 +10,7 @@ import { config } from 'dotenv'
 import { usersMessage } from '~/constants/messages'
 import { ErrorWithStatus } from '~/models/errors'
 import httpStatus from '~/constants/httpStatus'
-import Followers from '~/models/schemas/Followers.schema'
+import Followers from '~/models/schemas/Follower.schema'
 import axios from 'axios'
 import { verify } from 'crypto'
 config()

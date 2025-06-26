@@ -3,14 +3,14 @@ import { MongoClient, Db, Collection } from 'mongodb'
 import { config } from 'dotenv'
 import User from '~/models/schemas/User.schema'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
-import Followers from '~/models/schemas/Followers.schema'
+import Follower from '~/models/schemas/Follower.schema'
 import test from 'node:test'
 import e from 'express'
 import Tweet from '~/models/schemas/Tweet.schema'
-import Hashtags from '~/models/schemas/Hashtags.schema'
+import Hashtags from '~/models/schemas/Hashtag.schema'
 import { Hash } from 'crypto'
-import BookmarkModel from '~/models/schemas/Bookmarks.schema'
-import LikeModel from '~/models/schemas/Likes.schema'
+import BookmarkModel from '~/models/schemas/Bookmark.schema'
+import LikeModel from '~/models/schemas/Like.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@clone-x.wrxpqkb.mongodb.net/?appName=Clone-X`
@@ -58,13 +58,12 @@ class DatabaseService {
     await this.refreshTokens.createIndex({ token: 1 })
     await this.refreshTokens.createIndex({ exp: 1 }, { expireAfterSeconds: 0 }) //tự động xóa token sau khi hết hạn
   }
-
   async indexFollowers() {
-    const exists = await this.followers.indexExists(['userId_1_followerId_1'])
+    const exists = await this.followers.indexExists(['user_id_1_followed_user_id_1'])
     if (exists) {
       return
     }
-    await this.followers.createIndex({ userId: 1, followerId: 1 }, { unique: true }) // tạo index cho userId và followerId
+    await this.followers.createIndex({ user_id: 1, followed_user_id: 1 }, { unique: true }) // tạo index cho user_id và followed_user_id
   }
 
   async disconnect() {
@@ -81,8 +80,7 @@ class DatabaseService {
   get refreshTokens(): Collection<RefreshToken> {
     return this.db.collection(process.env.DB_REFRESH_TOKEN_COLLECTION as string)
   }
-
-  get followers(): Collection<Followers> {
+  get followers(): Collection<Follower> {
     return this.db.collection(process.env.DB_FOLLOWERS_COLLECTION as string)
   }
 
