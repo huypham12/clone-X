@@ -66,6 +66,14 @@ class DatabaseService {
     await this.followers.createIndex({ user_id: 1, followed_user_id: 1 }, { unique: true }) // tạo index cho user_id và followed_user_id
   }
 
+  async indexTweets() {
+    const exists = await this.tweets.indexExists(['content_text'])
+    if (exists) {
+      return
+    }
+    await this.tweets.createIndex({ content: 'text' }, { default_language: 'none' })
+  }
+
   async disconnect() {
     await this.client.close()
   }
