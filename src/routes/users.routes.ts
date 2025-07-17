@@ -48,12 +48,26 @@ usersRouter.post('/register', registerValidator, wrap(registerController))
 
 // tách các middleware, controller thành các module riêng cho dễ quản lý
 
-/*
-  Desc: Login a user
-  Path: /login
-  Method: Post
-  Body: {email: string, password: string}
-*/
+/**
+ * @swagger
+ * /users/me:
+ *   get:
+ *     tags:
+ *       - users
+ *     summary: Get current user information
+ *     description: Lấy thông tin người dùng hiện tại
+ *     operationId: getCurrentUser
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Get user profile success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserInfo'
+ */
+
 usersRouter.post('/login', loginValidator, wrap(loginController))
 
 /*

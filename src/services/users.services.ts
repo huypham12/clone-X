@@ -13,7 +13,9 @@ import httpStatus from '~/constants/httpStatus'
 import Followers from '~/models/schemas/Follower.schema'
 import axios from 'axios'
 import { verify } from 'crypto'
-config()
+import { getEnvConfig } from '~/constants/config'
+import { sendVerifyEmail } from '~/utils/email'
+getEnvConfig() // Lấy cấu hình từ file .env
 
 // cái service này dùng cho cái collection users, khi nào code cần dùng đến cái collection này thì gọi service ra
 class UsersService {
@@ -135,6 +137,9 @@ class UsersService {
       })
     )
     // nên trả về kết quả của việc insert để sau này có thể lấy insertedId dùng cho việc tạo token gì đó (tạm thời chưa biết)
+
+    // send email verify token cho người dùng
+    await sendVerifyEmail(payload.email, email_verify_token)
 
     return {
       access_token,
@@ -305,6 +310,7 @@ class UsersService {
       user_id,
       verify: UserVerifyStatus.Unverified
     })
+
     // tạo lại email verify token cho người dùng để gửi lại
     await databaseService.users.updateOne(
       {
@@ -319,6 +325,24 @@ class UsersService {
         }
       }
     )
+
+    const user = await databaseService.users.findOne(
+      { _id: new ObjectId(user_id) },
+      {
+        projection: {
+          email: 1 // chỉ lấy email để gửi xác thực
+        }
+      }
+    )
+
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: usersMessage.USER_NOT_FOUND,
+        status: httpStatus.NOT_FOUND
+      })
+    }
+
+    await sendVerifyEmail(user.email, email_verify_token)
     return {
       email_verify_token
     }

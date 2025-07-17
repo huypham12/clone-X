@@ -11,7 +11,10 @@ import Hashtags from '~/models/schemas/Hashtag.schema'
 import { Hash } from 'crypto'
 import BookmarkModel from '~/models/schemas/Bookmark.schema'
 import LikeModel from '~/models/schemas/Like.schema'
-config()
+import { C } from 'node_modules/@faker-js/faker/dist/airline-BUL6NtOJ.cjs'
+import Conversation from '~/models/schemas/Conversation.schema'
+import { getEnvConfig } from '~/constants/config'
+getEnvConfig() // Lấy cấu hình từ file .env
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@clone-x.wrxpqkb.mongodb.net/?appName=Clone-X`
 
@@ -105,6 +108,10 @@ class DatabaseService {
 
   get likes(): Collection<LikeModel> {
     return this.db.collection(process.env.DB_LIKES_COLLECTION as string)
+  }
+
+  get conversations(): Collection<Conversation> {
+    return this.db.collection(process.env.DB_CONVERSATIONS_COLLECTION as string)
   }
 
   get test() {

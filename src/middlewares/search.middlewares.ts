@@ -12,7 +12,11 @@ export const searchValidator = validate(
       pf: {
         isString: true,
         errorMessage: 'People following must be a string',
-        optional: true
+        optional: true,
+        isIn: {
+          options: [['true', 'false']],
+          errorMessage: 'People following must be either "true" or "false"'
+        }
       },
       media_type: {
         isString: true,

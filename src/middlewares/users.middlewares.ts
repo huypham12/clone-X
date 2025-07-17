@@ -351,7 +351,7 @@ export const emailVerifyTokenValidator = validate(
         }
       }
     },
-    ['body']
+    ['body', 'query']
   )
 )
 

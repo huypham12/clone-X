@@ -1,0 +1,162 @@
+openapi: 3.0.4
+info:
+  title: Clone X
+  description: |-
+    This is a clone of the X API, which provides endpoints for user authentication and management.
+    The API allows users to log in, register, and manage their profiles.
+  termsOfService: https://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.12
+externalDocs:
+  description: Find out more about Swagger
+  url: https://swagger.io
+servers:
+  - url: http://localhost:4000
+    description: Local server for development
+tags:
+  - name: users
+    description: Operations about user
+    externalDocs:
+      description: Find out more about our user operations
+      url: http://localhost:4000/user
+
+paths:
+  /users/login:
+    post:
+      tags:
+        - users
+      summary: Logs user into the system
+      description: Đăng nhập người dùng vào hệ thống
+      operationId: loginUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Đăng nhập thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessAuthResponse"
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Pet not found
+        "422":
+          description: Validation exception
+        default:
+          description: Unexpected error
+
+  /users/me:
+    get:
+      tags:
+        - users
+      summary: Get current user information
+      description: Lấy thông tin người dùng hiện tại
+      operationId: getCurrentUser
+      # Sử dụng Bearer Token để xác thực
+      security:
+        - bearerAuth: []
+
+      responses:
+        "200":
+          description: Get user profile success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+
+components:
+  schemas:
+    LoginBody:
+      required:
+        - email
+        - password
+      type: object
+      properties:
+        email:
+          type: string
+          example: "client1@gmail.com"
+        password:
+          type: string
+          example: "P@ssw0rd123"
+
+    SuccessAuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Đăng nhập thành công"
+        result:
+          type: object
+          properties:
+            access_token:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg2MmQyODI1Y2I1NWQ4NGVkNTNjYzcyIiwidG9rZW5fdHlwZSI6MCwidmVyaWZ5IjoxLCJpYXQiOjE3NTE0MjQ5NjIsImV4cCI6MTc1MTUxMTM2Mn0.pS4KNqryXIoJ1UJp_9Pr1jCnpHiAtLf3FvMPtvGsXl0"
+            refresh_token:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg2MmQyODI1Y2I1NWQ4NGVkNTNjYzcyIiwidG9rZW5fdHlwZSI6MSwidmVyaWZ5IjoxLCJpYXQiOjE3NTE0MjQ5NjIsImV4cCI6MTc1NDAxNjk2Mn0.e8uC5uj_5KCLv-BgBpPYHaDGvVNRe9IRms8so72zDrU"
+
+    UserInfo:
+      properties:
+        message:
+          type: string
+          example: Get user profile success
+        result:
+          type: object
+          properties:
+            _id:
+              type: string
+              format: ObjectId
+              example: 6862d2825cb55d84ed53cc72
+            name:
+              type: string
+              example: client1
+            email:
+              type: string
+              format: email
+              example: client1@gmail.com
+            date_of_birth:
+              type: string
+              format: ISO8601
+              example: 2004-11-24T00:00:00.000Z
+            twitter_circle:
+              type: array
+              items:
+                type: string
+                format: ObjectId
+              example: []
+            bio:
+              type: string
+              example: ""
+            location:
+              type: string
+              example: ""
+            website:
+              type: string
+              example: ""
+            username:
+              type: string
+              example: user6862d2825cb55d84ed53cc72
+            avatar:
+              type: string
+              example: ""
+            cover_photo:
+              type: string
+              example: ""
+
+  # tạo scheme cho việc xác thực Bearer Token
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Use the `Authorization` header with the value `Bearer <token>` to access protected endpoints.
+        Example: `Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg2MmQyODI1Y2I1NWQ4NGVkNTNjYzcyIiwidG9rZW5fdHlwZSI6MCwidmVyaWZ5IjoxLCJpYXQiOjE3NTE0MjQ5NjIsImV4cCI6MTc1MTUxMTM2Mn0.pS4KNqryXIoJ1UJp_9Pr1jCnpHiAtLf3FvMPtvGsXl0"

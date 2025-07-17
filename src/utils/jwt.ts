@@ -1,7 +1,8 @@
 import jwt, { SignOptions } from 'jsonwebtoken'
 import { config } from 'dotenv'
 import { TokenPayload } from '~/models/requests/User.requests'
-config()
+import { getEnvConfig } from '~/constants/config'
+getEnvConfig() // Lấy cấu hình từ file .env
 
 // mấy cái chỗ kiểu dữ liệu này ts nó có cái gọi là function overloads nên phải viết đúng kiểu dữ liệu cụ thể thì mới đc:))) biết thế đã
 

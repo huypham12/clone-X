@@ -7,7 +7,8 @@ import fs from 'fs'
 import { config } from 'dotenv'
 import { isProduction } from '~/constants/config'
 import { MediaType } from '~/constants/enums'
-config()
+import { getEnvConfig } from '~/constants/config'
+getEnvConfig() // Lấy cấu hình từ file .env
 import { Media } from '~/models/Orther'
 import { encodeHLSWithMultipleVideoStreams } from '~/utils/video'
 
